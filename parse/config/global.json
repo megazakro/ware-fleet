@@ -1,0 +1,11 @@
+{
+    "applications": {
+        "_default": {
+            "link": "ware-fleet"
+        }, 
+        "ware-fleet": {
+            "applicationId": "77wfLKaKWh4yxmkfr7Ee5iiQInG9An97ptvT2y7F", 
+            "masterKey": "8vVePZrhEfKQjI10uuQWrMyK6fSYsaweVm4MJOSh"
+        }
+    }
+}

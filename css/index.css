@@ -1,0 +1,63 @@
+﻿
+body {
+	font-family: 'Meiryo UI';
+	color: #333;
+}
+
+ul.ship_type {
+	margin-top: 0px;
+	margin-bottom: 5px;
+}
+
+	ul.ship_type li {
+		list-style: none;
+		display: inline-block;
+		width: 100px;
+		border-radius: 4px;
+		border: 1px solid navy;
+		text-align: center;
+		padding: 3px 0px;
+		cursor: pointer;
+	}
+
+		ul.ship_type li.selected {
+			border-color: red;
+			background-color: #fed;
+			font-weight: bold;
+		}
+
+ul.ship {
+	width: 95%;
+	margin-top: 0px;
+	margin-left: auto;
+	margin-right: auto;
+	border-radius: 4px;
+	border: 2px solid navy;
+	background-color: aliceblue;
+	padding: 10px 10px;
+
+	min-height: 40px;
+	max-height: 240px;
+	overflow-y: scroll;
+}
+
+	ul.ship li {
+		list-style: none;
+		display: inline-block;
+		width: 150px;
+		border-radius: 4px;
+		border: 1px solid #f0f0f0;
+		text-align: left;
+		padding: 3px 3px;
+		cursor: pointer;
+		background-color: #fefefe;
+		margin-bottom: 4px;
+	}
+
+		ul.ship li span.ship_type {
+			display: inline-block;
+			font-size: 0.9em;
+			color: red;
+			width: 50px;
+			text-align: left;
+		}
