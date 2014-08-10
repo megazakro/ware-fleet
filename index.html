@@ -12,16 +12,20 @@
 		<ul id="ul_ship_type" class="ship_type" data-bind="foreach: shipTypes">
 			<li data-bind="text: name,
 							css: { selected: selected(), 'unselected': !selected()},
-							click: $parent.shipTypeSelected,
+							click: $parent.onShipTypeClick,
 							attr: { id : id }
 							"></li>
 		</ul>
 
-		<ul class="all_ship" data-bind="foreach: ships">
-			<li data-bind="css: 'type_' + type "><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
+		<ul class="all_ship" data-bind="foreach: allShips">
+			<li data-bind="css: 'type_' + type,
+							click: $parent.onAllShipsClick,
+							"><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
 		</ul>
 
-		<ul class="myships"></ul>
+		<ul class="myships" data-bind="foreach: myShips">
+			<li data-bind="css: 'type_' + type "><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
+		</ul>
 
 	</div>
 

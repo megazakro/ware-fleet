@@ -30,40 +30,47 @@ module Page {
 			shipTypeMap[value.id] = value;
 		});
 
-		var viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData);
+		var myShips = [];
+
+		var viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData, ko.observableArray(myShips));
 
 		ko.applyBindings(viewModel);
 	}
 
-	function onShipTypeSelected() {
-
-		var shows = $("#ul_ship_type li.selected").map((index, element) => {
-			return ".type_" + element.getAttribute("id");
-		}).toArray();
-
-		var hides = $("#ul_ship_type li.unselected").map((index, element) => {
-			return ".type_" + element.getAttribute("id");
-		}).toArray();
-
-		if (0 < shows.length) {
-			$(shows.join(",")).show();
-		}
-
-		if (0 < hides.length) {
-			$(hides.join(",")).hide();
-		}
-	}
-
 	export class ViewModel {
+
+
 
 		constructor(
 			public shipTypes: KnockoutObservableArray<ShipType>,
-			public ships: Array<Ship>
+			public allShips: Array<Ship>,
+			public myShips: KnockoutObservableArray<Ship>
 			) { }
 
-		shipTypeSelected(item: ShipType) {
+		public onShipTypeClick = (item: ShipType) => {
 			item.selected(!item.selected());
-			onShipTypeSelected();
+
+			var shows = $("#ul_ship_type li.selected").map((index, element) => {
+				return ".type_" + element.getAttribute("id");
+			}).toArray();
+
+			var hides = $("#ul_ship_type li.unselected").map((index, element) => {
+				return ".type_" + element.getAttribute("id");
+			}).toArray();
+
+			if (0 < shows.length) {
+				$(shows.join(",")).show();
+			}
+
+			if (0 < hides.length) {
+				$(hides.join(",")).hide();
+			}
+		}
+
+		public onAllShipsClick = (item: Ship) => {
+
+			this.myShips.push(item);
+
 		}
 
 	}
@@ -82,8 +89,13 @@ module Page {
 			public name: string,
 			public type: string) { }
 
-		shipType() {
-			return "[" + Page.shipTypeMap[this.type].shortName + "]";
+		public shipType = (): string => {
+			if (this.type in Page.shipTypeMap) {
+				return "[" + Page.shipTypeMap[this.type].shortName + "]";
+			}
+			else {
+				return "";
+			}
 		}
 	}
 

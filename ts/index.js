@@ -27,39 +27,43 @@ var Page;
             Page.shipTypeMap[value.id] = value;
         });
 
-        var viewModel = new ViewModel(ko.observableArray(shipTypeArray), Page.shipData);
+        var myShips = [];
+
+        var viewModel = new ViewModel(ko.observableArray(shipTypeArray), Page.shipData, ko.observableArray(myShips));
 
         ko.applyBindings(viewModel);
     }
     Page.initialize = initialize;
 
-    function onShipTypeSelected() {
-        var shows = $("#ul_ship_type li.selected").map(function (index, element) {
-            return ".type_" + element.getAttribute("id");
-        }).toArray();
-
-        var hides = $("#ul_ship_type li.unselected").map(function (index, element) {
-            return ".type_" + element.getAttribute("id");
-        }).toArray();
-
-        if (0 < shows.length) {
-            $(shows.join(",")).show();
-        }
-
-        if (0 < hides.length) {
-            $(hides.join(",")).hide();
-        }
-    }
-
     var ViewModel = (function () {
-        function ViewModel(shipTypes, ships) {
+        function ViewModel(shipTypes, allShips, myShips) {
+            var _this = this;
             this.shipTypes = shipTypes;
-            this.ships = ships;
+            this.allShips = allShips;
+            this.myShips = myShips;
+            this.onShipTypeClick = function (item) {
+                item.selected(!item.selected());
+
+                var shows = $("#ul_ship_type li.selected").map(function (index, element) {
+                    return ".type_" + element.getAttribute("id");
+                }).toArray();
+
+                var hides = $("#ul_ship_type li.unselected").map(function (index, element) {
+                    return ".type_" + element.getAttribute("id");
+                }).toArray();
+
+                if (0 < shows.length) {
+                    $(shows.join(",")).show();
+                }
+
+                if (0 < hides.length) {
+                    $(hides.join(",")).hide();
+                }
+            };
+            this.onAllShipsClick = function (item) {
+                _this.myShips.push(item);
+            };
         }
-        ViewModel.prototype.shipTypeSelected = function (item) {
-            item.selected(!item.selected());
-            onShipTypeSelected();
-        };
         return ViewModel;
     })();
     Page.ViewModel = ViewModel;
@@ -77,13 +81,18 @@ var Page;
 
     var Ship = (function () {
         function Ship(id, name, type) {
+            var _this = this;
             this.id = id;
             this.name = name;
             this.type = type;
+            this.shipType = function () {
+                if (_this.type in Page.shipTypeMap) {
+                    return "[" + Page.shipTypeMap[_this.type].shortName + "]";
+                } else {
+                    return "";
+                }
+            };
         }
-        Ship.prototype.shipType = function () {
-            return "[" + Page.shipTypeMap[this.type].shortName + "]";
-        };
         return Ship;
     })();
     Page.Ship = Ship;
