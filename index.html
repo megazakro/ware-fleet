@@ -17,9 +17,11 @@
 							"></li>
 		</ul>
 
-		<ul class="ship" data-bind="foreach: ships">
+		<ul class="all_ship" data-bind="foreach: ships">
 			<li data-bind="css: 'type_' + type "><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
 		</ul>
+
+		<ul class="myships"></ul>
 
 	</div>
 

@@ -92,7 +92,8 @@ module Page {
 $(document).ready(() => {
 
 	jQuery.ajax({
-		url: "json/myship.json"
+		url: "/json/myship.json",
+		dataType: "JSON"
 	})
 		.then((data) => {
 

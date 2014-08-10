@@ -26,7 +26,7 @@ ul.ship_type {
 			font-weight: bold;
 		}
 
-ul.ship {
+ul.all_ship {
 	width: 95%;
 	margin-top: 0px;
 	margin-left: auto;
@@ -41,7 +41,7 @@ ul.ship {
 	overflow-y: scroll;
 }
 
-	ul.ship li {
+	ul.all_ship li {
 		list-style: none;
 		display: inline-block;
 		width: 150px;
@@ -54,7 +54,7 @@ ul.ship {
 		margin-bottom: 4px;
 	}
 
-		ul.ship li span.ship_type {
+		ul.all_ship li span.ship_type {
 			display: inline-block;
 			font-size: 0.9em;
 			color: red;
