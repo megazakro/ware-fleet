@@ -3,11 +3,29 @@
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
 
+class LS_KEY {
+	static SEQ: string = "SEQ";
+	static MEMBER: string = "MEMBER";
+}
+
+class LsMemberItem {
+	shipId: string;
+	name: string;
+	type: string;
+	level: number;
+	memberId: string;
+}
+
 module Page {
 
 	export var shipData: Array<Ship>;
 
 	export var shipTypeMap: { [key: string]: ShipType };
+	export var memberMap: { [key: string]: Ship };
+
+	var seq: number = 0;
+
+	var viewModel: ViewModel;
 
 	export function initialize() {
 
@@ -30,9 +48,22 @@ module Page {
 			shipTypeMap[value.id] = value;
 		});
 
-		var myShips = [];
+		memberMap = {};
 
-		var viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData, ko.observableArray(myShips), ko.observable(new Ship("", "", "", 0)));
+		var myShips: Array<Ship>= [];
+		if (localStorage[LS_KEY.MEMBER]) {
+
+			var value: Array<any> = JSON.parse(localStorage[LS_KEY.MEMBER]);
+
+			if (value && 0 < value.length) {
+
+				value.forEach((item: LsMemberItem) => {
+					myShips.push(new Ship(item.shipId, item.name, item.type, item.level, item.memberId));
+				});
+			}
+		}
+
+		viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData, ko.observable(new Ship("", "", "")), myShips);
 
 		ko.applyBindings(viewModel);
 	}
@@ -42,9 +73,19 @@ module Page {
 		constructor(
 			public shipTypes: KnockoutObservableArray<ShipType>,
 			public allShips: Array<Ship>,
-			public myShips: KnockoutObservableArray<Ship>,
-			public activeShip: KnockoutObservable<Ship>
-			) { }
+			public activeShip: KnockoutObservable<Ship>,
+			myShips : Array<Ship>
+			) {
+
+			if (myShips) {
+				this.myShips = ko.observableArray(myShips);
+			}
+			else {
+				this.myShips = ko.observableArray([]);
+			}
+		}
+
+		myShips: KnockoutObservableArray<Ship>;
 
 		public onShipTypeClick = (item: ShipType) => {
 			item.selected(!item.selected());
@@ -68,7 +109,9 @@ module Page {
 
 		public onAllShipsClick = (item: Ship) => {
 			this.myShips.push(item);
+			memberMap[item.memberId] = item;
 
+			saveToStorage();
 		}
 
 		public onMyShipsClick = (item: Ship) => {
@@ -87,12 +130,33 @@ module Page {
 
 	export class Ship {
 		constructor(
-			public id: string,
+			public shipId: string,
 			public name: string,
 			public type: string,
-			public level: number) { }
+			public level?: number,
+			public memberId?: string
+			) {
 
-		public shipType = (): string => {
+			if (!memberId) {
+				this.memberId = shipId + "_" + seq++;
+			}
+
+			if (0 < level) {
+				this.o_level = ko.observable(level);
+			}
+			else {
+				this.o_level = ko.observable(0);
+			}
+			this.o_level.subscribe((value) => {
+				this.level = value;
+				saveToStorage();
+			});
+
+		}
+
+		o_level: KnockoutObservable<number>;
+
+		shipType = (): string => {
 			if (this.type in Page.shipTypeMap) {
 				return "[" + Page.shipTypeMap[this.type].shortName + "]";
 			}
@@ -100,6 +164,22 @@ module Page {
 				return "";
 			}
 		}
+
+		shipTypeLong = (): string => {
+			if (this.type in Page.shipTypeMap) {
+				return Page.shipTypeMap[this.type].name;
+			}
+			else {
+				return "";
+			}
+		}
+
+	}
+
+	function saveToStorage() {
+
+		localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
+
 	}
 
 }
@@ -117,7 +197,6 @@ $(document).ready(() => {
 				Page.shipData.push(new Page.Ship(value.id, value.name, value.type, 1));
 			});
 
-			console.log("Page.shipData.length:" + Page.shipData.length);
 		})
 		.then(Page.initialize);
 });

@@ -1,11 +1,30 @@
 ﻿/// <reference path="../Scripts/typings/jquery/jquery.d.ts"/>
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
+var LS_KEY = (function () {
+    function LS_KEY() {
+    }
+    LS_KEY.SEQ = "SEQ";
+    LS_KEY.MEMBER = "MEMBER";
+    return LS_KEY;
+})();
+
+var LsMemberItem = (function () {
+    function LsMemberItem() {
+    }
+    return LsMemberItem;
+})();
+
 var Page;
 (function (Page) {
     Page.shipData;
 
     Page.shipTypeMap;
+    Page.memberMap;
+
+    var seq = 0;
+
+    var viewModel;
 
     function initialize() {
         var selectedDefault = true;
@@ -27,20 +46,30 @@ var Page;
             Page.shipTypeMap[value.id] = value;
         });
 
-        var myShips = [];
+        Page.memberMap = {};
 
-        var viewModel = new ViewModel(ko.observableArray(shipTypeArray), Page.shipData, ko.observableArray(myShips), ko.observable(new Ship("", "", "", 0)));
+        var myShips = [];
+        if (localStorage[LS_KEY.MEMBER]) {
+            var value = JSON.parse(localStorage[LS_KEY.MEMBER]);
+
+            if (value && 0 < value.length) {
+                value.forEach(function (item) {
+                    myShips.push(new Ship(item.shipId, item.name, item.type, item.level, item.memberId));
+                });
+            }
+        }
+
+        viewModel = new ViewModel(ko.observableArray(shipTypeArray), Page.shipData, ko.observable(new Ship("", "", "")), myShips);
 
         ko.applyBindings(viewModel);
     }
     Page.initialize = initialize;
 
     var ViewModel = (function () {
-        function ViewModel(shipTypes, allShips, myShips, activeShip) {
+        function ViewModel(shipTypes, allShips, activeShip, myShips) {
             var _this = this;
             this.shipTypes = shipTypes;
             this.allShips = allShips;
-            this.myShips = myShips;
             this.activeShip = activeShip;
             this.onShipTypeClick = function (item) {
                 item.selected(!item.selected());
@@ -63,10 +92,18 @@ var Page;
             };
             this.onAllShipsClick = function (item) {
                 _this.myShips.push(item);
+                Page.memberMap[item.memberId] = item;
+
+                saveToStorage();
             };
             this.onMyShipsClick = function (item) {
                 _this.activeShip(item);
             };
+            if (myShips) {
+                this.myShips = ko.observableArray(myShips);
+            } else {
+                this.myShips = ko.observableArray([]);
+            }
         }
         return ViewModel;
     })();
@@ -84,12 +121,13 @@ var Page;
     Page.ShipType = ShipType;
 
     var Ship = (function () {
-        function Ship(id, name, type, level) {
+        function Ship(shipId, name, type, level, memberId) {
             var _this = this;
-            this.id = id;
+            this.shipId = shipId;
             this.name = name;
             this.type = type;
             this.level = level;
+            this.memberId = memberId;
             this.shipType = function () {
                 if (_this.type in Page.shipTypeMap) {
                     return "[" + Page.shipTypeMap[_this.type].shortName + "]";
@@ -97,10 +135,34 @@ var Page;
                     return "";
                 }
             };
+            this.shipTypeLong = function () {
+                if (_this.type in Page.shipTypeMap) {
+                    return Page.shipTypeMap[_this.type].name;
+                } else {
+                    return "";
+                }
+            };
+            if (!memberId) {
+                this.memberId = shipId + "_" + seq++;
+            }
+
+            if (0 < level) {
+                this.o_level = ko.observable(level);
+            } else {
+                this.o_level = ko.observable(0);
+            }
+            this.o_level.subscribe(function (value) {
+                _this.level = value;
+                saveToStorage();
+            });
         }
         return Ship;
     })();
     Page.Ship = Ship;
+
+    function saveToStorage() {
+        localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
+    }
 })(Page || (Page = {}));
 
 $(document).ready(function () {
@@ -112,7 +174,5 @@ $(document).ready(function () {
         data.ships.forEach(function (value) {
             Page.shipData.push(new Page.Ship(value.id, value.name, value.type, 1));
         });
-
-        console.log("Page.shipData.length:" + Page.shipData.length);
     }).then(Page.initialize);
 });
