@@ -1,33 +1,47 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
 	<link rel="stylesheet" type="text/css" href="css/index.css" />
 </head>
 <body>
 
-	<div id="div_ship_type">
+	<section id="sec_myships">
+		<h3>所持</h3>
 
-		<ul id="ul_ship_type" class="ship_type" data-bind="foreach: shipTypes">
-			<li data-bind="text: name,
-							css: { selected: selected(), 'unselected': !selected()},
-							click: $parent.onShipTypeClick,
-							attr: { id : id }
+		<div id="div_ship_type" class="myships_container">
+
+			<ul id="ul_ship_type" class="ship_type" data-bind="foreach: shipTypes">
+				<li data-bind="text: name,
+								css: { selected: selected(), 'unselected': !selected() },
+								click: $parent.onShipTypeClick,
+								attr: { id: id }
 							"></li>
-		</ul>
+			</ul>
 
-		<ul class="all_ship" data-bind="foreach: allShips">
-			<li data-bind="css: 'type_' + type,
-							click: $parent.onAllShipsClick,
-							"><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
-		</ul>
+		</div>
+		<div id="div_all_ship" class="myships_container">
+			<h4>一覧</h4>
+			<ul class="all_ship list" data-bind="foreach: allShips">
+				<li data-bind="css: 'type_' + type,
+								click: $parent.onAllShipsClick,
+								"><span class="ship_type" data-bind="	text: shipType()"></span><span data-bind="	text: name"></span></li>
+			</ul>
+		</div>
 
-		<ul class="myships" data-bind="foreach: myShips">
-			<li data-bind="css: 'type_' + type "><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
-		</ul>
+		<div id="div_myships" class="myships_container">
+			<h4>所属</h4>
+			<ul class="myships list" data-bind="foreach: myShips">
+				<li data-bind="css: 'type_' + type"><span class="ship_type" data-bind="	text: shipType()"></span><span data-bind="	text: name"></span></li>
+			</ul>
+		</div>
 
-	</div>
+		<div id="div_ship_status" class="myships_container">
+			<h4>ステータス</h4>
+		</div>
+
+	</section>
 
 	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
 	<script type="text/javascript" src="js/knockout-3.1.0.js"></script>
