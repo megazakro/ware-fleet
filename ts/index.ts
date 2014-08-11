@@ -32,19 +32,18 @@ module Page {
 
 		var myShips = [];
 
-		var viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData, ko.observableArray(myShips));
+		var viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData, ko.observableArray(myShips), ko.observable(new Ship("", "", "", 0)));
 
 		ko.applyBindings(viewModel);
 	}
 
 	export class ViewModel {
 
-
-
 		constructor(
 			public shipTypes: KnockoutObservableArray<ShipType>,
 			public allShips: Array<Ship>,
-			public myShips: KnockoutObservableArray<Ship>
+			public myShips: KnockoutObservableArray<Ship>,
+			public activeShip: KnockoutObservable<Ship>
 			) { }
 
 		public onShipTypeClick = (item: ShipType) => {
@@ -68,9 +67,12 @@ module Page {
 		}
 
 		public onAllShipsClick = (item: Ship) => {
-
 			this.myShips.push(item);
 
+		}
+
+		public onMyShipsClick = (item: Ship) => {
+			this.activeShip(item);
 		}
 
 	}
@@ -87,7 +89,8 @@ module Page {
 		constructor(
 			public id: string,
 			public name: string,
-			public type: string) { }
+			public type: string,
+			public level: number) { }
 
 		public shipType = (): string => {
 			if (this.type in Page.shipTypeMap) {
@@ -111,7 +114,7 @@ $(document).ready(() => {
 
 			Page.shipData = [];
 			data.ships.forEach((value) => {
-				Page.shipData.push(new Page.Ship(value.id, value.name, value.type));
+				Page.shipData.push(new Page.Ship(value.id, value.name, value.type, 1));
 			});
 
 			console.log("Page.shipData.length:" + Page.shipData.length);

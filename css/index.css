@@ -7,21 +7,25 @@ body {
 }
 
 .myships_container {
-
 	/*
 	border: 1px solid red;
 	*/
 }
-.myships_container h4 {
-	margin: 3px;
-}
 
-ul.list {
+	.myships_container h4 {
+		margin: 3px;
+	}
+
+.border_box {
 	border-radius: 4px;
 	border: 2px solid navy;
 	background-color: #b0d7f4;
 	padding: 10px 10px;
 }
+
+ul.list {
+}
+
 	ul.list li {
 		list-style: none;
 		border-radius: 4px;
@@ -42,6 +46,7 @@ ul.list {
 	border-radius: 4px;
 	border: 1px solid #b0d7f4;
 }
+
 	#sec_myships h3 {
 		margin: 3px;
 	}
@@ -77,7 +82,8 @@ ul.ship_type {
 		padding: 3px 0px;
 		cursor: pointer;
 		background-color: #fff;
-			font-weight: bold;
+		font-weight: bold;
+		margin-bottom:3px;
 	}
 
 		ul.ship_type li.selected {
@@ -98,6 +104,7 @@ ul.all_ship {
 		text-align: left;
 		cursor: pointer;
 	}
+
 		ul.all_ship li:hover {
 			border-color: #d16b16;
 			border-width: 2px;
@@ -108,10 +115,84 @@ ul.all_ship {
 			vertical-align: top;
 		}
 
-		ul.all_ship li span.ship_type {
-			display: inline-block;
-			font-size: 0.9em;
-			color: red;
-			width: 50px;
-			text-align: left;
+			ul.all_ship li span.ship_type {
+				display: inline-block;
+				font-size: 0.9em;
+				color: red;
+				width: 50px;
+				text-align: left;
+			}
+
+ul.myships {
+	margin-top: 0px;
+	min-height: 40px;
+	max-height: 240px;
+	overflow-y: scroll;
+	margin-bottom: 10px;
+}
+
+	ul.myships li {
+		display: inline-block;
+		cursor: pointer;
+	}
+		ul.myships li:hover {
+			border-color: #d16b16;
+			border-width: 2px;
 		}
+
+		ul.myships li span.name {
+			display: inline-block;
+			width: 80px;
+		}
+
+		ul.myships li span.level {
+			display: inline-block;
+			width: 50px;
+		}
+
+#div_ship_status div.status {
+	margin-top: 0px;
+	height: 240px;
+	margin-bottom: 10px;
+}
+
+#div_ship_status div.spec {
+	border-radius: 4px 4px 0px 0px;
+	border: 2px solid #fefefe;
+	padding: 0px;
+	background-color: #fefefe;
+	margin-bottom: 0px;
+	height: 200px;
+}
+
+#div_ship_status div.command {
+	border-radius: 0px 0px 4px 4px;
+	border: 2px solid #fefefe;
+	padding: 0px;
+	background-color: #fefefe;
+	margin-bottom: 1px;
+	height: 30px;
+}
+
+	#div_ship_status div.command a {
+		display: inline-block;
+		border-radius: 4px;
+		border-style: solid;
+		border-width: 1px;
+		padding: 3px 10px;
+		text-decoration: none;
+		font-weight: bold;
+		height: 22px;
+	}
+	#div_ship_status div.command a.remove {
+		border-color: #c60019;
+		background-color: #c60019;
+		color: #ffffff;
+		float: left;
+	}
+	#div_ship_status div.command a.add {
+		border-color: #019c96;
+		background-color: #019c96;
+		color: #ffffff;
+		float: right;
+	}

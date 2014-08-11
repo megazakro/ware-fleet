@@ -29,18 +29,19 @@ var Page;
 
         var myShips = [];
 
-        var viewModel = new ViewModel(ko.observableArray(shipTypeArray), Page.shipData, ko.observableArray(myShips));
+        var viewModel = new ViewModel(ko.observableArray(shipTypeArray), Page.shipData, ko.observableArray(myShips), ko.observable(new Ship("", "", "", 0)));
 
         ko.applyBindings(viewModel);
     }
     Page.initialize = initialize;
 
     var ViewModel = (function () {
-        function ViewModel(shipTypes, allShips, myShips) {
+        function ViewModel(shipTypes, allShips, myShips, activeShip) {
             var _this = this;
             this.shipTypes = shipTypes;
             this.allShips = allShips;
             this.myShips = myShips;
+            this.activeShip = activeShip;
             this.onShipTypeClick = function (item) {
                 item.selected(!item.selected());
 
@@ -63,6 +64,9 @@ var Page;
             this.onAllShipsClick = function (item) {
                 _this.myShips.push(item);
             };
+            this.onMyShipsClick = function (item) {
+                _this.activeShip(item);
+            };
         }
         return ViewModel;
     })();
@@ -80,11 +84,12 @@ var Page;
     Page.ShipType = ShipType;
 
     var Ship = (function () {
-        function Ship(id, name, type) {
+        function Ship(id, name, type, level) {
             var _this = this;
             this.id = id;
             this.name = name;
             this.type = type;
+            this.level = level;
             this.shipType = function () {
                 if (_this.type in Page.shipTypeMap) {
                     return "[" + Page.shipTypeMap[_this.type].shortName + "]";
@@ -105,7 +110,7 @@ $(document).ready(function () {
     }).then(function (data) {
         Page.shipData = [];
         data.ships.forEach(function (value) {
-            Page.shipData.push(new Page.Ship(value.id, value.name, value.type));
+            Page.shipData.push(new Page.Ship(value.id, value.name, value.type, 1));
         });
 
         console.log("Page.shipData.length:" + Page.shipData.length);
