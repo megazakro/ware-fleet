@@ -37,8 +37,7 @@
 								click: $parent.onMyShipsClick
 								"><span class="ship_type" data-bind="text: shipType()"
 					></span><span class="name" data-bind="text: name"
-					></span><span class="level" data-bind="text: 'lv ' + level"
-					></span></li>
+					></span><span class="level" data-bind="text: 'Lv ' + o_level()"></span></li>
 			</ul>
 		</div>
 
@@ -47,6 +46,14 @@
 			<div class="status border_box" >
 				<div class="spec" data-bind="if: activeShip().level > 0">
 					<span class="name" data-bind="text: activeShip().name"></span>
+					<span class="type" data-bind="text: activeShip().shipTypeLong()"></span>
+					<span class="level">Lv</span><input type="number" class="level" data-bind="value: activeShip().o_level" />
+					<div>
+						<a class="level_up" href="#">△+10</a>
+						<a class="level_up" href="#">△+1</a>
+						<a class="level_up" href="#">▼-1</a>
+						<a class="level_up" href="#">▼-10</a>
+					</div>
 				</div>
 				<div class="command">
 					<a class="remove" href="#">除籍</a>

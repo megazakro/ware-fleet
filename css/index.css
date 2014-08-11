@@ -56,15 +56,8 @@ ul.list {
 }
 
 #div_myships {
-	width: 58%;
+	width: 68%;
 	display: inline-block;
-}
-
-#div_ship_status {
-	width: 40%;
-	min-width: 300px;
-	display: inline-block;
-	vertical-align: top;
 }
 
 ul.ship_type {
@@ -83,7 +76,7 @@ ul.ship_type {
 		cursor: pointer;
 		background-color: #fff;
 		font-weight: bold;
-		margin-bottom:3px;
+		margin-bottom: 3px;
 	}
 
 		ul.ship_type li.selected {
@@ -135,9 +128,18 @@ ul.myships {
 		display: inline-block;
 		cursor: pointer;
 	}
+
 		ul.myships li:hover {
 			border-color: #d16b16;
 			border-width: 2px;
+		}
+
+		ul.myships li span.ship_type {
+			display: inline-block;
+			font-size: 0.9em;
+			color: red;
+			width: 50px;
+			text-align: left;
 		}
 
 		ul.myships li span.name {
@@ -150,49 +152,68 @@ ul.myships {
 			width: 50px;
 		}
 
-#div_ship_status div.status {
-	margin-top: 0px;
-	height: 240px;
-	margin-bottom: 10px;
+#div_ship_status {
+	width: 30%;
+	min-width: 200px;
+	display: inline-block;
+	vertical-align: top;
 }
 
-#div_ship_status div.spec {
-	border-radius: 4px 4px 0px 0px;
-	border: 2px solid #fefefe;
-	padding: 0px;
-	background-color: #fefefe;
-	margin-bottom: 0px;
-	height: 200px;
-}
+	#div_ship_status div.status {
+		margin-top: 0px;
+		height: 240px;
+		margin-bottom: 10px;
+	}
 
-#div_ship_status div.command {
-	border-radius: 0px 0px 4px 4px;
-	border: 2px solid #fefefe;
-	padding: 0px;
-	background-color: #fefefe;
-	margin-bottom: 1px;
-	height: 30px;
-}
+	#div_ship_status div.spec {
+		border-radius: 4px 4px 0px 0px;
+		border: 2px solid #fefefe;
+		padding: 5px 5px 0px 5px;
+		background-color: #fefefe;
+		margin-bottom: 0px;
+		height: 200px;
+	}
 
-	#div_ship_status div.command a {
-		display: inline-block;
-		border-radius: 4px;
-		border-style: solid;
-		border-width: 1px;
-		padding: 3px 10px;
-		text-decoration: none;
-		font-weight: bold;
-		height: 22px;
+		#div_ship_status div.spec span.type {
+			display: inline-block;
+		}
+
+		#div_ship_status div.spec span.name {
+			display: inline-block;
+			display: block;
+			font-size: 1.2em;
+		}
+
+	#div_ship_status div.command {
+		border-radius: 0px 0px 4px 4px;
+		border: 2px solid #fefefe;
+		padding: 0px;
+		background-color: #fefefe;
+		margin-bottom: 1px;
+		height: 30px;
 	}
-	#div_ship_status div.command a.remove {
-		border-color: #c60019;
-		background-color: #c60019;
-		color: #ffffff;
-		float: left;
-	}
-	#div_ship_status div.command a.add {
-		border-color: #019c96;
-		background-color: #019c96;
-		color: #ffffff;
-		float: right;
-	}
+
+		#div_ship_status div.command a {
+			display: inline-block;
+			border-radius: 4px;
+			border-style: solid;
+			border-width: 1px;
+			padding: 3px 10px;
+			text-decoration: none;
+			font-weight: bold;
+			height: 22px;
+		}
+
+			#div_ship_status div.command a.remove {
+				border-color: #c60019;
+				background-color: #c60019;
+				color: #ffffff;
+				float: left;
+			}
+
+			#div_ship_status div.command a.add {
+				border-color: #019c96;
+				background-color: #019c96;
+				color: #ffffff;
+				float: right;
+			}
