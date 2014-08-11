@@ -167,7 +167,7 @@ var Page;
 
 $(document).ready(function () {
     jQuery.ajax({
-        url: "/json/myship.json",
+        url: "./json/myship.json",
         dataType: "JSON"
     }).then(function (data) {
         Page.shipData = [];
