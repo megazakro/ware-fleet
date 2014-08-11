@@ -1,7 +1,65 @@
 ﻿
+/* components */
+
 body {
 	font-family: 'Meiryo UI';
-	color: #333;
+	color: #334;
+}
+
+.myships_container {
+
+	/*
+	border: 1px solid red;
+	*/
+}
+.myships_container h4 {
+	margin: 3px;
+}
+
+ul.list {
+	border-radius: 4px;
+	border: 2px solid navy;
+	background-color: #b0d7f4;
+	padding: 10px 10px;
+}
+	ul.list li {
+		list-style: none;
+		border-radius: 4px;
+		border: 2px solid #fefefe;
+		padding: 3px 3px;
+		background-color: #fefefe;
+		margin-bottom: 4px;
+	}
+
+/* parts */
+
+#sec_myships {
+	width: 98%;
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #fdfdfd;
+	padding: 0px 5px;
+	border-radius: 4px;
+	border: 1px solid #b0d7f4;
+}
+	#sec_myships h3 {
+		margin: 3px;
+	}
+
+#div_all_ship {
+	margin-right: auto;
+}
+
+#div_myships {
+	width: 58%;
+	display: inline-block;
+}
+
+#div_ship_status {
+	width: 40%;
+	min-width: 300px;
+	display: inline-block;
+	vertical-align: top;
 }
 
 ul.ship_type {
@@ -14,45 +72,41 @@ ul.ship_type {
 		display: inline-block;
 		width: 100px;
 		border-radius: 4px;
-		border: 1px solid navy;
+		border: 2px solid #c0c0c0;
 		text-align: center;
 		padding: 3px 0px;
 		cursor: pointer;
+		background-color: #fff;
+			font-weight: bold;
 	}
 
 		ul.ship_type li.selected {
-			border-color: red;
+			border-color: #d16b16;
 			background-color: #fed;
-			font-weight: bold;
 		}
 
 ul.all_ship {
-	width: 95%;
 	margin-top: 0px;
-	margin-left: auto;
-	margin-right: auto;
-	border-radius: 4px;
-	border: 2px solid navy;
-	background-color: aliceblue;
-	padding: 10px 10px;
-
 	min-height: 40px;
 	max-height: 240px;
 	overflow-y: scroll;
 }
 
 	ul.all_ship li {
-		list-style: none;
 		display: inline-block;
 		width: 150px;
-		border-radius: 4px;
-		border: 1px solid #f0f0f0;
 		text-align: left;
-		padding: 3px 3px;
 		cursor: pointer;
-		background-color: #fefefe;
-		margin-bottom: 4px;
 	}
+		ul.all_ship li:hover {
+			border-color: #d16b16;
+			border-width: 2px;
+		}
+
+		ul.all_ship li span {
+			line-height: 16px;
+			vertical-align: top;
+		}
 
 		ul.all_ship li span.ship_type {
 			display: inline-block;
