@@ -1,10 +1,11 @@
 ﻿/// <reference path="../Scripts/typings/jquery/jquery.d.ts"/>
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
+/// <reference path="./master/ShipTypeMaster.ts"/>
 var LS_KEY = (function () {
     function LS_KEY() {
     }
-    LS_KEY.SEQ = "SEQ";
+    LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE = "ALLSHIP_TOGGLE_IS_CLOSE";
     LS_KEY.MEMBER = "MEMBER";
     return LS_KEY;
 })();
@@ -19,7 +20,6 @@ var Page;
 (function (Page) {
     Page.shipData;
 
-    Page.shipTypeMap;
     Page.memberMap;
 
     var seq = 0;
@@ -27,24 +27,7 @@ var Page;
     var viewModel;
 
     function initialize() {
-        var selectedDefault = true;
-        var shipTypeArray = [
-            { id: "01", name: "戦艦", shortName: "戦", selected: ko.observable(selectedDefault) },
-            { id: "02", name: "航空戦艦", shortName: "戦", selected: ko.observable(selectedDefault) },
-            { id: "03", name: "正規空母", shortName: "航", selected: ko.observable(selectedDefault) },
-            { id: "04", name: "装甲空母", shortName: "装母", selected: ko.observable(selectedDefault) },
-            { id: "05", name: "軽空母", shortName: "軽母", selected: ko.observable(selectedDefault) },
-            { id: "06", name: "水上機母艦", shortName: "水母", selected: ko.observable(selectedDefault) },
-            { id: "07", name: "重巡洋艦", shortName: "重巡", selected: ko.observable(selectedDefault) },
-            { id: "08", name: "航空巡洋艦", shortName: "航巡", selected: ko.observable(selectedDefault) },
-            { id: "09", name: "軽巡洋艦", shortName: "軽巡", selected: ko.observable(selectedDefault) },
-            { id: "10", name: "駆逐艦", shortName: "駆", selected: ko.observable(selectedDefault) }
-        ];
-
-        Page.shipTypeMap = {};
-        shipTypeArray.forEach(function (value) {
-            Page.shipTypeMap[value.id] = value;
-        });
+        ShipTypeMaster.initialize();
 
         Page.memberMap = {};
 
@@ -59,18 +42,16 @@ var Page;
             }
         }
 
-        viewModel = new ViewModel(ko.observableArray(shipTypeArray), Page.shipData, ko.observable(new Ship("", "", "")), myShips);
+        viewModel = new ViewModel(Page.shipData, myShips, false);
 
         ko.applyBindings(viewModel);
     }
     Page.initialize = initialize;
 
     var ViewModel = (function () {
-        function ViewModel(shipTypes, allShips, activeShip, myShips) {
+        function ViewModel(allShips, myShips, allShipToggleHide) {
             var _this = this;
-            this.shipTypes = shipTypes;
             this.allShips = allShips;
-            this.activeShip = activeShip;
             this.onShipTypeClick = function (item) {
                 item.selected(!item.selected());
 
@@ -99,27 +80,38 @@ var Page;
             this.onMyShipsClick = function (item) {
                 _this.activeShip(item);
             };
+            this.onAllShipToggleClick = function () {
+                _this.allShipToggle.isClose(!_this.allShipToggle.isClose());
+
+                saveToStorage();
+            };
+            this.onRemoveShipClick = function () {
+                _this.myShips.remove(_this.activeShip());
+                _this.activeShip(new Ship("", "", ""));
+
+                saveToStorage();
+            };
+            this.activeShip = ko.observable(new Ship("", "", "")), this.shipTypes = ShipTypeMaster.list;
+
             if (myShips) {
                 this.myShips = ko.observableArray(myShips);
             } else {
                 this.myShips = ko.observableArray([]);
             }
+
+            this.allShipToggle = new AllShipToggle(allShipToggleHide);
         }
         return ViewModel;
     })();
     Page.ViewModel = ViewModel;
 
-    var ShipType = (function () {
-        function ShipType(id, name, shortName, selected) {
-            this.id = id;
-            this.name = name;
-            this.shortName = shortName;
-            this.selected = selected;
-        }
-        return ShipType;
-    })();
-    Page.ShipType = ShipType;
-
+    //export class ShipType {
+    //	constructor(
+    //		public id: string,
+    //		public name: string,
+    //		public shortName: string,
+    //		public selected: KnockoutObservable<boolean>) { }
+    //}
     var Ship = (function () {
         function Ship(shipId, name, type, level, memberId) {
             var _this = this;
@@ -129,15 +121,15 @@ var Page;
             this.level = level;
             this.memberId = memberId;
             this.shipType = function () {
-                if (_this.type in Page.shipTypeMap) {
-                    return "[" + Page.shipTypeMap[_this.type].shortName + "]";
+                if (_this.type in ShipTypeMaster.map) {
+                    return "[" + ShipTypeMaster.map[_this.type].shortName + "]";
                 } else {
                     return "";
                 }
             };
             this.shipTypeLong = function () {
-                if (_this.type in Page.shipTypeMap) {
-                    return Page.shipTypeMap[_this.type].name;
+                if (_this.type in ShipTypeMaster.map) {
+                    return ShipTypeMaster.map[_this.type].name;
                 } else {
                     return "";
                 }
@@ -160,8 +152,36 @@ var Page;
     })();
     Page.Ship = Ship;
 
+    var AllShipToggle = (function () {
+        function AllShipToggle(isClose) {
+            var _this = this;
+            this.text = function () {
+                if (_this.isClose()) {
+                    return "+";
+                }
+                return "-";
+            };
+            this.isClose = ko.observable(isClose);
+        }
+        return AllShipToggle;
+    })();
+    Page.AllShipToggle = AllShipToggle;
+
+    var savePromised = false;
     function saveToStorage() {
-        localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
+        console.log("savePromised:" + savePromised);
+        if (!savePromised) {
+            savePromised = true;
+
+            $.Deferred(function (dfd) {
+                setTimeout(dfd.resolve, 3000);
+            }).promise().then(function () {
+                localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
+                localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
+            }).done(function () {
+                savePromised = false;
+            });
+        }
     }
 })(Page || (Page = {}));
 

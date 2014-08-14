@@ -22,8 +22,8 @@
 
 		</div>
 		<div id="div_all_ship" class="myships_container">
-			<h4>一覧</h4>
-			<ul class="all_ship list border_box" data-bind="foreach: allShips">
+			<h4 class="with_toggle">一覧<span class="toggle" data-bind="text: allShipToggle.text(), click: onAllShipToggleClick ">-</span></h4>
+			<ul class="all_ship list border_box" data-bind="css: { 'close': allShipToggle.isClose() }, foreach: allShips">
 				<li data-bind="css: 'type_' + type,
 								click: $parent.onAllShipsClick
 								"><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
@@ -37,7 +37,7 @@
 								click: $parent.onMyShipsClick
 								"><span class="ship_type" data-bind="text: shipType()"
 					></span><span class="name" data-bind="text: name"
-					></span><span class="level" data-bind="text: 'Lv ' + o_level()"></span></li>
+					></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span></li>
 			</ul>
 		</div>
 
@@ -56,7 +56,7 @@
 					</div>
 				</div>
 				<div class="command">
-					<a class="remove" href="#">除籍</a>
+					<a class="remove" href="#" data-bind="click: onRemoveShipClick">除籍</a>
 					<a class="add" href="#">配属</a>
 				</div>
 			</div>
@@ -67,6 +67,7 @@
 	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
 	<script type="text/javascript" src="js/knockout-3.1.0.js"></script>
 	<script type="text/javascript" src="js/underscore-min.js"></script>
+	<script type="text/javascript" src="ts/master/ShipTypeMaster.js"></script>
 	<script type="text/javascript" src="ts/index.js"></script>
 </body>
 </html>

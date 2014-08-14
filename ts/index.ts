@@ -2,9 +2,10 @@
 /// <reference path="../Scripts/typings/jquery/jquery.d.ts"/>
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
+/// <reference path="./master/ShipTypeMaster.ts"/>
 
 class LS_KEY {
-	static SEQ: string = "SEQ";
+	static ALLSHIP_TOGGLE_IS_CLOSE: string = "ALLSHIP_TOGGLE_IS_CLOSE";
 	static MEMBER: string = "MEMBER";
 }
 
@@ -20,7 +21,6 @@ module Page {
 
 	export var shipData: Array<Ship>;
 
-	export var shipTypeMap: { [key: string]: ShipType };
 	export var memberMap: { [key: string]: Ship };
 
 	var seq: number = 0;
@@ -29,28 +29,11 @@ module Page {
 
 	export function initialize() {
 
-		var selectedDefault = true;
-		var shipTypeArray = [
-			{ id: "01", name: "戦艦", shortName: "戦", selected: ko.observable(selectedDefault) },
-			{ id: "02", name: "航空戦艦", shortName: "戦", selected: ko.observable(selectedDefault) },
-			{ id: "03", name: "正規空母", shortName: "航", selected: ko.observable(selectedDefault) },
-			{ id: "04", name: "装甲空母", shortName: "装母", selected: ko.observable(selectedDefault) },
-			{ id: "05", name: "軽空母", shortName: "軽母", selected: ko.observable(selectedDefault) },
-			{ id: "06", name: "水上機母艦", shortName: "水母", selected: ko.observable(selectedDefault) },
-			{ id: "07", name: "重巡洋艦", shortName: "重巡", selected: ko.observable(selectedDefault) },
-			{ id: "08", name: "航空巡洋艦", shortName: "航巡", selected: ko.observable(selectedDefault) },
-			{ id: "09", name: "軽巡洋艦", shortName: "軽巡", selected: ko.observable(selectedDefault) },
-			{ id: "10", name: "駆逐艦", shortName: "駆", selected: ko.observable(selectedDefault) },
-		];
-
-		shipTypeMap = {};
-		shipTypeArray.forEach((value) => {
-			shipTypeMap[value.id] = value;
-		});
+		ShipTypeMaster.initialize();
 
 		memberMap = {};
 
-		var myShips: Array<Ship>= [];
+		var myShips: Array<Ship> = [];
 		if (localStorage[LS_KEY.MEMBER]) {
 
 			var value: Array<any> = JSON.parse(localStorage[LS_KEY.MEMBER]);
@@ -63,7 +46,7 @@ module Page {
 			}
 		}
 
-		viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData, ko.observable(new Ship("", "", "")), myShips);
+		viewModel = new ViewModel(shipData, myShips, false);
 
 		ko.applyBindings(viewModel);
 	}
@@ -71,11 +54,14 @@ module Page {
 	export class ViewModel {
 
 		constructor(
-			public shipTypes: KnockoutObservableArray<ShipType>,
 			public allShips: Array<Ship>,
-			public activeShip: KnockoutObservable<Ship>,
-			myShips : Array<Ship>
+			myShips: Array<Ship>,
+			allShipToggleHide: boolean
 			) {
+
+			this.activeShip = ko.observable(new Ship("", "", "")),
+
+			this.shipTypes = ShipTypeMaster.list;
 
 			if (myShips) {
 				this.myShips = ko.observableArray(myShips);
@@ -83,9 +69,17 @@ module Page {
 			else {
 				this.myShips = ko.observableArray([]);
 			}
+
+			this.allShipToggle = new AllShipToggle(allShipToggleHide);
 		}
 
+		activeShip: KnockoutObservable<Ship>;
+
+		shipTypes: Array<ShipType>;
+
 		myShips: KnockoutObservableArray<Ship>;
+
+		allShipToggle: AllShipToggle;
 
 		public onShipTypeClick = (item: ShipType) => {
 			item.selected(!item.selected());
@@ -118,15 +112,27 @@ module Page {
 			this.activeShip(item);
 		}
 
+		public onAllShipToggleClick = () => {
+			this.allShipToggle.isClose(!this.allShipToggle.isClose());
+
+			saveToStorage();
+		}
+
+		public onRemoveShipClick = () => {
+			this.myShips.remove(this.activeShip());
+			this.activeShip(new Ship("", "", ""));
+
+			saveToStorage();
+		}
 	}
 
-	export class ShipType {
-		constructor(
-			public id: string,
-			public name: string,
-			public shortName: string,
-			public selected: KnockoutObservable<boolean>) { }
-	}
+	//export class ShipType {
+	//	constructor(
+	//		public id: string,
+	//		public name: string,
+	//		public shortName: string,
+	//		public selected: KnockoutObservable<boolean>) { }
+	//}
 
 	export class Ship {
 		constructor(
@@ -157,8 +163,8 @@ module Page {
 		o_level: KnockoutObservable<number>;
 
 		shipType = (): string => {
-			if (this.type in Page.shipTypeMap) {
-				return "[" + Page.shipTypeMap[this.type].shortName + "]";
+			if (this.type in ShipTypeMaster.map) {
+				return "[" + ShipTypeMaster.map[this.type].shortName + "]";
 			}
 			else {
 				return "";
@@ -166,8 +172,8 @@ module Page {
 		}
 
 		shipTypeLong = (): string => {
-			if (this.type in Page.shipTypeMap) {
-				return Page.shipTypeMap[this.type].name;
+			if (this.type in ShipTypeMaster.map) {
+				return ShipTypeMaster.map[this.type].name;
 			}
 			else {
 				return "";
@@ -176,10 +182,43 @@ module Page {
 
 	}
 
+	export class AllShipToggle {
+
+		constructor(isClose: boolean) {
+			this.isClose = ko.observable(isClose);
+		}
+
+		isClose: KnockoutObservable<boolean>;
+
+		text = (): string => {
+
+			if (this.isClose()) {
+				return "+";
+			}
+			return "-";
+		}
+	}
+
+	var savePromised = false;
 	function saveToStorage() {
 
-		localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
+		console.log("savePromised:" + savePromised);
+		if (!savePromised) {
 
+			savePromised = true;
+
+			$.Deferred((dfd) => {
+				setTimeout(dfd.resolve, 3000);
+			}).promise()
+				.then(() => {
+
+					localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
+					localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
+
+				}).done(() => {
+					savePromised = false;
+				});
+		}
 	}
 
 }
