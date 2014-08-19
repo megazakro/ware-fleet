@@ -1,5 +1,6 @@
 ﻿
 /// <reference path="../Scripts/typings/jquery/jquery.d.ts"/>
+/// <reference path="../Scripts/linq.d.ts"/>
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
 /// <reference path="./master/ShipTypeMaster.ts"/>
@@ -7,6 +8,8 @@
 class LS_KEY {
 	static ALLSHIP_TOGGLE_IS_CLOSE: string = "ALLSHIP_TOGGLE_IS_CLOSE";
 	static MEMBER: string = "MEMBER";
+	static ACTIVE_SHIP_ID = "ACTIVE_SHIP_ID";
+	static ACTIVE_FLEET_ID = "ACTIVE_FLEET_ID";
 }
 
 class LsMemberItem {
@@ -46,7 +49,9 @@ module Page {
 			}
 		}
 
-		viewModel = new ViewModel(shipData, myShips, false);
+		var activeShipId = localStorage[LS_KEY.ACTIVE_SHIP_ID];
+
+		viewModel = new ViewModel(shipData, myShips, false, activeShipId);
 
 		ko.applyBindings(viewModel);
 	}
@@ -56,10 +61,10 @@ module Page {
 		constructor(
 			public allShips: Array<Ship>,
 			myShips: Array<Ship>,
-			allShipToggleHide: boolean
+			allShipToggleHide: boolean,
+			activeShipId?: string,
+			_fleets?: Array<Fleet>
 			) {
-
-			this.activeShip = ko.observable(new Ship("", "", "")),
 
 			this.shipTypes = ShipTypeMaster.list;
 
@@ -70,14 +75,38 @@ module Page {
 				this.myShips = ko.observableArray([]);
 			}
 
+			if (activeShipId) {
+				var ship = Enumerable.from(this.myShips())
+					.where((item) => (item.shipId == activeShipId))
+					.select((item) => item).firstOrDefault((item, index) => true, new Ship("", "", ""));
+
+				this.activeShip = ko.observable(ship);
+			}
+			else {
+				this.activeShip = ko.observable(new Ship("", "", ""));
+			}
+
 			this.allShipToggle = new AllShipToggle(allShipToggleHide);
+
+			if (!_fleets || _fleets.length < 1) {
+				this.myFleets = ko.observableArray([new Fleet("第1艦隊")]);
+			}
+			else {
+				this.myFleets = ko.observableArray(_fleets);
+			}
+
+			this.activeFleet = ko.observable(this.myFleets()[0]);
 		}
 
 		activeShip: KnockoutObservable<Ship>;
 
+		activeFleet: KnockoutObservable<Fleet>;
+
 		shipTypes: Array<ShipType>;
 
 		myShips: KnockoutObservableArray<Ship>;
+
+		myFleets: KnockoutObservableArray<Fleet>;
 
 		allShipToggle: AllShipToggle;
 
@@ -110,10 +139,27 @@ module Page {
 
 		public onMyShipsClick = (item: Ship) => {
 			this.activeShip(item);
+
+			saveToStorage();
+		}
+
+		public onMyFleetsClick = (item: Fleet) => {
+			this.activeFleet(item);
 		}
 
 		public onAllShipToggleClick = () => {
 			this.allShipToggle.isClose(!this.allShipToggle.isClose());
+
+			saveToStorage();
+		}
+
+		public onAddShipClick = () => {
+
+			console.log(this.activeFleet().ships());
+
+			this.activeFleet().ships.push(this.activeShip());
+
+			console.log(this.activeFleet().ships());
 
 			saveToStorage();
 		}
@@ -124,15 +170,18 @@ module Page {
 
 			saveToStorage();
 		}
-	}
 
-	//export class ShipType {
-	//	constructor(
-	//		public id: string,
-	//		public name: string,
-	//		public shortName: string,
-	//		public selected: KnockoutObservable<boolean>) { }
-	//}
+		public onAddFleetClick = () => {
+
+			this.myFleets.push(new Fleet("第" + (this.myFleets().length + 1) + "艦隊"));
+
+			saveToStorage();
+		}
+
+		public onRemoveFleetShipClick = () => {
+			alert();
+		}
+	}
 
 	export class Ship {
 		constructor(
@@ -182,6 +231,27 @@ module Page {
 
 	}
 
+	export class Fleet {
+
+		constructor(
+			_name: string,
+			_ships?: Array<Ship>
+			) {
+
+			this.name = ko.observable(_name);
+
+			if (!_ships || _ships.length < 1) {
+				this.ships = ko.observableArray([]);
+			}
+			else {
+				this.ships = ko.observableArray(_ships);
+			}
+		}
+
+		public name: KnockoutObservable<string>;
+		public ships: KnockoutObservableArray<Ship>;
+	}
+
 	export class AllShipToggle {
 
 		constructor(isClose: boolean) {
@@ -214,6 +284,8 @@ module Page {
 
 					localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
 					localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
+					localStorage[LS_KEY.ACTIVE_SHIP_ID] = viewModel.activeShip().shipId;
+					localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().name;
 
 				}).done(() => {
 					savePromised = false;

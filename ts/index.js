@@ -1,4 +1,5 @@
 ﻿/// <reference path="../Scripts/typings/jquery/jquery.d.ts"/>
+/// <reference path="../Scripts/linq.d.ts"/>
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
 /// <reference path="./master/ShipTypeMaster.ts"/>
@@ -7,6 +8,8 @@ var LS_KEY = (function () {
     }
     LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE = "ALLSHIP_TOGGLE_IS_CLOSE";
     LS_KEY.MEMBER = "MEMBER";
+    LS_KEY.ACTIVE_SHIP_ID = "ACTIVE_SHIP_ID";
+    LS_KEY.ACTIVE_FLEET_ID = "ACTIVE_FLEET_ID";
     return LS_KEY;
 })();
 
@@ -42,14 +45,16 @@ var Page;
             }
         }
 
-        viewModel = new ViewModel(Page.shipData, myShips, false);
+        var activeShipId = localStorage[LS_KEY.ACTIVE_SHIP_ID];
+
+        viewModel = new ViewModel(Page.shipData, myShips, false, activeShipId);
 
         ko.applyBindings(viewModel);
     }
     Page.initialize = initialize;
 
     var ViewModel = (function () {
-        function ViewModel(allShips, myShips, allShipToggleHide) {
+        function ViewModel(allShips, myShips, allShipToggleHide, activeShipId, _fleets) {
             var _this = this;
             this.allShips = allShips;
             this.onShipTypeClick = function (item) {
@@ -79,9 +84,23 @@ var Page;
             };
             this.onMyShipsClick = function (item) {
                 _this.activeShip(item);
+
+                saveToStorage();
+            };
+            this.onMyFleetsClick = function (item) {
+                _this.activeFleet(item);
             };
             this.onAllShipToggleClick = function () {
                 _this.allShipToggle.isClose(!_this.allShipToggle.isClose());
+
+                saveToStorage();
+            };
+            this.onAddShipClick = function () {
+                console.log(_this.activeFleet().ships());
+
+                _this.activeFleet().ships.push(_this.activeShip());
+
+                console.log(_this.activeFleet().ships());
 
                 saveToStorage();
             };
@@ -91,7 +110,15 @@ var Page;
 
                 saveToStorage();
             };
-            this.activeShip = ko.observable(new Ship("", "", "")), this.shipTypes = ShipTypeMaster.list;
+            this.onAddFleetClick = function () {
+                _this.myFleets.push(new Fleet("第" + (_this.myFleets().length + 1) + "艦隊"));
+
+                saveToStorage();
+            };
+            this.onRemoveFleetShipClick = function () {
+                alert();
+            };
+            this.shipTypes = ShipTypeMaster.list;
 
             if (myShips) {
                 this.myShips = ko.observableArray(myShips);
@@ -99,19 +126,34 @@ var Page;
                 this.myShips = ko.observableArray([]);
             }
 
+            if (activeShipId) {
+                var ship = Enumerable.from(this.myShips()).where(function (item) {
+                    return (item.shipId == activeShipId);
+                }).select(function (item) {
+                    return item;
+                }).firstOrDefault(function (item, index) {
+                    return true;
+                }, new Ship("", "", ""));
+
+                this.activeShip = ko.observable(ship);
+            } else {
+                this.activeShip = ko.observable(new Ship("", "", ""));
+            }
+
             this.allShipToggle = new AllShipToggle(allShipToggleHide);
+
+            if (!_fleets || _fleets.length < 1) {
+                this.myFleets = ko.observableArray([new Fleet("第1艦隊")]);
+            } else {
+                this.myFleets = ko.observableArray(_fleets);
+            }
+
+            this.activeFleet = ko.observable(this.myFleets()[0]);
         }
         return ViewModel;
     })();
     Page.ViewModel = ViewModel;
 
-    //export class ShipType {
-    //	constructor(
-    //		public id: string,
-    //		public name: string,
-    //		public shortName: string,
-    //		public selected: KnockoutObservable<boolean>) { }
-    //}
     var Ship = (function () {
         function Ship(shipId, name, type, level, memberId) {
             var _this = this;
@@ -152,6 +194,20 @@ var Page;
     })();
     Page.Ship = Ship;
 
+    var Fleet = (function () {
+        function Fleet(_name, _ships) {
+            this.name = ko.observable(_name);
+
+            if (!_ships || _ships.length < 1) {
+                this.ships = ko.observableArray([]);
+            } else {
+                this.ships = ko.observableArray(_ships);
+            }
+        }
+        return Fleet;
+    })();
+    Page.Fleet = Fleet;
+
     var AllShipToggle = (function () {
         function AllShipToggle(isClose) {
             var _this = this;
@@ -178,6 +234,8 @@ var Page;
             }).promise().then(function () {
                 localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
                 localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
+                localStorage[LS_KEY.ACTIVE_SHIP_ID] = viewModel.activeShip().shipId;
+                localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().name;
             }).done(function () {
                 savePromised = false;
             });

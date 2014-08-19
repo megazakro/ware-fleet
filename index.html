@@ -7,10 +7,10 @@
 </head>
 <body>
 
-	<section id="sec_myships">
-		<h3>所持</h3>
+	<section id="sec_myships" class="border_section">
+		<h3>艦娘</h3>
 
-		<div id="div_ship_type" class="myships_container">
+		<div id="div_ship_type" class="container">
 
 			<ul id="ul_ship_type" class="ship_type" data-bind="foreach: shipTypes">
 				<li data-bind="text: name,
@@ -21,8 +21,8 @@
 			</ul>
 
 		</div>
-		<div id="div_all_ship" class="myships_container">
-			<h4 class="with_toggle">一覧<span class="toggle" data-bind="text: allShipToggle.text(), click: onAllShipToggleClick ">-</span></h4>
+		<div id="div_all_ship" class="container">
+			<h4 class="with_toggle">全体<span class="toggle" data-bind="text: allShipToggle.text(), click: onAllShipToggleClick ">-</span></h4>
 			<ul class="all_ship list border_box" data-bind="css: { 'close': allShipToggle.isClose() }, foreach: allShips">
 				<li data-bind="css: 'type_' + type,
 								click: $parent.onAllShipsClick
@@ -30,25 +30,25 @@
 			</ul>
 		</div>
 
-		<div id="div_myships" class="myships_container">
+		<div id="div_myships" class="container">
 			<h4>所属</h4>
 			<ul class="myships list border_box" data-bind="foreach: myShips">
 				<li data-bind="css: 'type_' + type,
 								click: $parent.onMyShipsClick
-								"><span class="ship_type" data-bind="text: shipType()"
-					></span><span class="name" data-bind="text: name"
-					></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span></li>
+								">
+					<span class="ship_type" data-bind="text: shipType()"></span><span class="name" data-bind="text: name"></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span>
+				</li>
 			</ul>
 		</div>
 
-		<div id="div_ship_status" class="myships_container">
+		<div id="div_ship_status" class="container">
 			<h4>ステータス</h4>
-			<div class="status border_box" >
+			<div class="status border_box">
 				<div class="spec" data-bind="if: activeShip().level > 0">
 					<span class="name" data-bind="text: activeShip().name"></span>
 					<span class="type" data-bind="text: activeShip().shipTypeLong()"></span>
-					<span class="level">Lv</span><input type="number" class="level" data-bind="value: activeShip().o_level" />
-					<div>
+					<span class="level">Lv</span><input type="number" class="level textbox" data-bind="value: activeShip().o_level, valueUpdate: 'afterkeydown'" min="1" max="150" maxlength="3" />
+					<div style="display:none;">
 						<a class="level_up" href="#">△+10</a>
 						<a class="level_up" href="#">△+1</a>
 						<a class="level_up" href="#">▼-1</a>
@@ -56,15 +56,49 @@
 					</div>
 				</div>
 				<div class="command">
-					<a class="remove" href="#" data-bind="click: onRemoveShipClick">除籍</a>
-					<a class="add" href="#">配属</a>
+					<a class="remove button" href="#" data-bind="click: onRemoveShipClick">除籍</a>
+					<a class="add button" href="#" data-bind="click: onAddShipClick">配属</a>
 				</div>
 			</div>
 		</div>
 
 	</section>
+	<section id="sec_myfleets" class="border_section">
+		<h3>艦隊</h3>
+
+		<div id="div_fleet_list" class="container">
+			<h4>リスト</h4>
+			<div class="border_box">
+				<ul class="myfleets list border_box" data-bind="foreach: myFleets">
+					<li data-bind="
+						click: $parent.onMyFleetsClick
+								">
+						<span class="name" data-bind="text: name"></span>
+					</li>
+				</ul>
+
+				<div class="command">
+					<a class="add button" href="#" data-bind="click: onAddFleetClick">追加</a>
+				</div>
+			</div>
+		</div>
+
+		<div id="div_active_fleet" class="container">
+			<h4>編成<input type="text" class="fleet_name textbox" data-bind="value: activeFleet().name, valueUpdate: 'afterkeydown'" /></h4>
+			<ul class="myships list border_box" data-bind="foreach: activeFleet().ships">
+				<li data-bind="css: 'type_' + type,
+								click: $parent.onMyShipsClick
+								">
+					<span class="ship_type" data-bind="text: shipType()"></span><span class="name" data-bind="text: name"></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span>
+					<a href="#" class="remove button" data-bind="click: $parent.onRemoveFleetShipClick">はずす</a>
+				</li>
+			</ul>
+		</div>
+
+	</section>
 
 	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/linq.min.js"></script>
 	<script type="text/javascript" src="js/knockout-3.1.0.js"></script>
 	<script type="text/javascript" src="js/underscore-min.js"></script>
 	<script type="text/javascript" src="ts/master/ShipTypeMaster.js"></script>
