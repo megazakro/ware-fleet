@@ -26,7 +26,7 @@
 			<ul class="all_ship list border_box" data-bind="css: { 'close': allShipToggle.isClose() }, foreach: allShips">
 				<li data-bind="css: 'type_' + type,
 								click: $parent.onAllShipsClick
-								"><span class="ship_type" data-bind="text: shipType()"></span><span data-bind="text: name"></span></li>
+								"><span class="ship_type" data-bind="text: $parent.getShipTypeShortName($data)"></span><span data-bind="text: name"></span></li>
 			</ul>
 		</div>
 
@@ -36,7 +36,7 @@
 				<li data-bind="css: 'type_' + type,
 								click: $parent.onMyShipsClick
 								">
-					<span class="ship_type" data-bind="text: shipType()"></span><span class="name" data-bind="text: name"></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span>
+					<span class="ship_type" data-bind="text: $parent.getShipTypeShortName($data)"></span><span class="name" data-bind="text: name"></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span>
 				</li>
 			</ul>
 		</div>
@@ -46,7 +46,7 @@
 			<div class="status border_box">
 				<div class="spec" data-bind="if: activeShip().level > 0">
 					<span class="name" data-bind="text: activeShip().name"></span>
-					<span class="type" data-bind="text: activeShip().shipTypeLong()"></span>
+					<span class="type" data-bind="text: getShipTypeName(activeShip())"></span>
 					<span class="level">Lv</span><input type="number" class="level textbox" data-bind="value: activeShip().o_level, valueUpdate: 'afterkeydown'" min="1" max="150" maxlength="3" />
 					<div style="display:none;">
 						<a class="level_up" href="#">△+10</a>
@@ -83,17 +83,19 @@
 			</div>
 		</div>
 
-		<div id="div_active_fleet" class="container">
+		<!--<div id="div_active_fleet" class="container">
 			<h4>編成<input type="text" class="fleet_name textbox" data-bind="value: activeFleet().name, valueUpdate: 'afterkeydown'" /></h4>
 			<ul class="myships list border_box" data-bind="foreach: activeFleet().ships">
 				<li data-bind="css: 'type_' + type,
 								click: $parent.onMyShipsClick
 								">
-					<span class="ship_type" data-bind="text: shipType()"></span><span class="name" data-bind="text: name"></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span>
+					M
+					<span class="ship_type" data-bind="text: $parent.getShipTypeName($data)"></span><span class="name" data-bind="text: name"></span><span class="level_label">Lv</span><span class="level" data-bind="text: o_level()"></span>
 					<a href="#" class="remove button" data-bind="click: $parent.onRemoveFleetShipClick">はずす</a>
+
 				</li>
 			</ul>
-		</div>
+		</div>-->
 
 	</section>
 
@@ -101,7 +103,11 @@
 	<script type="text/javascript" src="js/linq.min.js"></script>
 	<script type="text/javascript" src="js/knockout-3.1.0.js"></script>
 	<script type="text/javascript" src="js/underscore-min.js"></script>
+	<script type="text/javascript" src="ts/common/LocalStorage.js"></script>
 	<script type="text/javascript" src="ts/master/ShipTypeMaster.js"></script>
+	<script type="text/javascript" src="ts/master/ShipMaster.js"></script>
+	<script type="text/javascript" src="ts/master/MemberShipMaster.js"></script>
+	<script type="text/javascript" src="ts/master/FleetMaster.js"></script>
 	<script type="text/javascript" src="ts/index.js"></script>
 </body>
 </html>

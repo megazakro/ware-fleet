@@ -3,14 +3,10 @@
 /// <reference path="../Scripts/linq.d.ts"/>
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
+/// <reference path="./common/LocalStorage.ts"/>
 /// <reference path="./master/ShipTypeMaster.ts"/>
-
-class LS_KEY {
-	static ALLSHIP_TOGGLE_IS_CLOSE: string = "ALLSHIP_TOGGLE_IS_CLOSE";
-	static MEMBER: string = "MEMBER";
-	static ACTIVE_SHIP_ID = "ACTIVE_SHIP_ID";
-	static ACTIVE_FLEET_ID = "ACTIVE_FLEET_ID";
-}
+/// <reference path="./master/ShipMaster.ts"/>
+/// <reference path="./master/FleetMaster.ts"/>
 
 class LsMemberItem {
 	shipId: string;
@@ -22,36 +18,22 @@ class LsMemberItem {
 
 module Page {
 
-	export var shipData: Array<Ship>;
-
-	export var memberMap: { [key: string]: Ship };
-
-	var seq: number = 0;
+	export var memberMap: { [key: string]: MemberShip };
 
 	var viewModel: ViewModel;
 
 	export function initialize() {
 
-		ShipTypeMaster.initialize();
-
 		memberMap = {};
 
-		var myShips: Array<Ship> = [];
-		if (localStorage[LS_KEY.MEMBER]) {
-
-			var value: Array<any> = JSON.parse(localStorage[LS_KEY.MEMBER]);
-
-			if (value && 0 < value.length) {
-
-				value.forEach((item: LsMemberItem) => {
-					myShips.push(new Ship(item.shipId, item.name, item.type, item.level, item.memberId));
-				});
-			}
+		var allShipToggleIsClose = false;
+		if (localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE]) {
+			allShipToggleIsClose = ("true" == localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE]);
 		}
 
 		var activeShipId = localStorage[LS_KEY.ACTIVE_SHIP_ID];
 
-		viewModel = new ViewModel(shipData, myShips, false, activeShipId);
+		viewModel = new ViewModel(allShipToggleIsClose, activeShipId);
 
 		ko.applyBindings(viewModel);
 	}
@@ -59,37 +41,32 @@ module Page {
 	export class ViewModel {
 
 		constructor(
-			public allShips: Array<Ship>,
-			myShips: Array<Ship>,
 			allShipToggleHide: boolean,
 			activeShipId?: string,
 			_fleets?: Array<Fleet>
 			) {
 
+			this.allShips = ShipMaster.list;
+
 			this.shipTypes = ShipTypeMaster.list;
 
-			if (myShips) {
-				this.myShips = ko.observableArray(myShips);
-			}
-			else {
-				this.myShips = ko.observableArray([]);
-			}
+			this.myShips = MemberShipMaster.list;
 
 			if (activeShipId) {
 				var ship = Enumerable.from(this.myShips())
 					.where((item) => (item.shipId == activeShipId))
-					.select((item) => item).firstOrDefault((item, index) => true, new Ship("", "", ""));
+					.select((item) => item).firstOrDefault((item, index) => true, MemberShip.empty());
 
 				this.activeShip = ko.observable(ship);
 			}
 			else {
-				this.activeShip = ko.observable(new Ship("", "", ""));
+				this.activeShip = ko.observable(MemberShip.empty());
 			}
 
 			this.allShipToggle = new AllShipToggle(allShipToggleHide);
 
 			if (!_fleets || _fleets.length < 1) {
-				this.myFleets = ko.observableArray([new Fleet("第1艦隊")]);
+				this.myFleets = ko.observableArray([]);
 			}
 			else {
 				this.myFleets = ko.observableArray(_fleets);
@@ -98,19 +75,41 @@ module Page {
 			this.activeFleet = ko.observable(this.myFleets()[0]);
 		}
 
-		activeShip: KnockoutObservable<Ship>;
+		allShips: Array<Ship>;
+
+		activeShip: KnockoutObservable<MemberShip>;
 
 		activeFleet: KnockoutObservable<Fleet>;
 
 		shipTypes: Array<ShipType>;
 
-		myShips: KnockoutObservableArray<Ship>;
+		myShips: KnockoutObservableArray<MemberShip>;
 
 		myFleets: KnockoutObservableArray<Fleet>;
 
 		allShipToggle: AllShipToggle;
 
-		public onShipTypeClick = (item: ShipType) => {
+		getShipTypeName(item: Ship): string {
+
+			if (item.type in ShipTypeMaster.map) {
+				return ShipTypeMaster.map[item.type].name;
+			}
+			else {
+				return "";
+			}
+		}
+
+		getShipTypeShortName(item: Ship) : string {
+
+			if (item.type in ShipTypeMaster.map) {
+				return "[" + ShipTypeMaster.map[item.type].shortName + "]";
+			}
+			else {
+				return "";
+			}
+		}
+
+		onShipTypeClick = (item: ShipType) => {
 			item.selected(!item.selected());
 
 			var shows = $("#ul_ship_type li.selected").map((index, element) => {
@@ -130,30 +129,27 @@ module Page {
 			}
 		}
 
-		public onAllShipsClick = (item: Ship) => {
-			this.myShips.push(item);
-			memberMap[item.memberId] = item;
-
+		onAllShipsClick = (selected: Ship) => {
+			MemberShipMaster.insert(selected.shipId, selected.name, selected.type, selected.level);
 			saveToStorage();
 		}
 
-		public onMyShipsClick = (item: Ship) => {
+		onMyShipsClick = (item: MemberShip) => {
 			this.activeShip(item);
-
 			saveToStorage();
 		}
 
-		public onMyFleetsClick = (item: Fleet) => {
+		onMyFleetsClick = (item: Fleet) => {
 			this.activeFleet(item);
 		}
 
-		public onAllShipToggleClick = () => {
+		onAllShipToggleClick = () => {
 			this.allShipToggle.isClose(!this.allShipToggle.isClose());
 
 			saveToStorage();
 		}
 
-		public onAddShipClick = () => {
+		onAddShipClick = () => {
 
 			console.log(this.activeFleet().ships());
 
@@ -164,92 +160,23 @@ module Page {
 			saveToStorage();
 		}
 
-		public onRemoveShipClick = () => {
-			this.myShips.remove(this.activeShip());
-			this.activeShip(new Ship("", "", ""));
+		onRemoveShipClick = () => {
+			MemberShipMaster.remove(this.activeShip());
+			this.activeShip(MemberShip.empty());
 
 			saveToStorage();
 		}
 
-		public onAddFleetClick = () => {
+		onAddFleetClick = () => {
 
-			this.myFleets.push(new Fleet("第" + (this.myFleets().length + 1) + "艦隊"));
+			// this.myFleets.push(new Fleet("第" + (this.myFleets().length + 1) + "艦隊"));
 
 			saveToStorage();
 		}
 
-		public onRemoveFleetShipClick = () => {
+		onRemoveFleetShipClick = () => {
 			alert();
 		}
-	}
-
-	export class Ship {
-		constructor(
-			public shipId: string,
-			public name: string,
-			public type: string,
-			public level?: number,
-			public memberId?: string
-			) {
-
-			if (!memberId) {
-				this.memberId = shipId + "_" + seq++;
-			}
-
-			if (0 < level) {
-				this.o_level = ko.observable(level);
-			}
-			else {
-				this.o_level = ko.observable(0);
-			}
-			this.o_level.subscribe((value) => {
-				this.level = value;
-				saveToStorage();
-			});
-
-		}
-
-		o_level: KnockoutObservable<number>;
-
-		shipType = (): string => {
-			if (this.type in ShipTypeMaster.map) {
-				return "[" + ShipTypeMaster.map[this.type].shortName + "]";
-			}
-			else {
-				return "";
-			}
-		}
-
-		shipTypeLong = (): string => {
-			if (this.type in ShipTypeMaster.map) {
-				return ShipTypeMaster.map[this.type].name;
-			}
-			else {
-				return "";
-			}
-		}
-
-	}
-
-	export class Fleet {
-
-		constructor(
-			_name: string,
-			_ships?: Array<Ship>
-			) {
-
-			this.name = ko.observable(_name);
-
-			if (!_ships || _ships.length < 1) {
-				this.ships = ko.observableArray([]);
-			}
-			else {
-				this.ships = ko.observableArray(_ships);
-			}
-		}
-
-		public name: KnockoutObservable<string>;
-		public ships: KnockoutObservableArray<Ship>;
 	}
 
 	export class AllShipToggle {
@@ -270,7 +197,7 @@ module Page {
 	}
 
 	var savePromised = false;
-	function saveToStorage() {
+	export function saveToStorage() {
 
 		console.log("savePromised:" + savePromised);
 		if (!savePromised) {
@@ -278,14 +205,16 @@ module Page {
 			savePromised = true;
 
 			$.Deferred((dfd) => {
-				setTimeout(dfd.resolve, 3000);
+				setTimeout(dfd.resolve, 1000);
 			}).promise()
 				.then(() => {
 
 					localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
 					localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
 					localStorage[LS_KEY.ACTIVE_SHIP_ID] = viewModel.activeShip().shipId;
-					localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().name;
+					// localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().fleetId;
+
+					FleetMaster.saveToStorage();
 
 				}).done(() => {
 					savePromised = false;
@@ -297,17 +226,11 @@ module Page {
 
 $(document).ready(() => {
 
-	jQuery.ajax({
-		url: "./json/myship.json",
-		dataType: "JSON"
-	})
-		.then((data) => {
-
-			Page.shipData = [];
-			data.ships.forEach((value) => {
-				Page.shipData.push(new Page.Ship(value.id, value.name, value.type, 1));
-			});
-
+	ShipMaster.initialize()
+		.then(() => {
+			MemberShipMaster.initialize(Page.saveToStorage);
 		})
-		.then(Page.initialize);
+		.then(ShipTypeMaster.initialize)
+		.then(FleetMaster.initialize)
+		.done(Page.initialize);
 });
