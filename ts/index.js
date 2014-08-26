@@ -5,13 +5,8 @@
 /// <reference path="./common/LocalStorage.ts"/>
 /// <reference path="./master/ShipTypeMaster.ts"/>
 /// <reference path="./master/ShipMaster.ts"/>
+/// <reference path="./master/MemberShipMaster.ts"/>
 /// <reference path="./master/FleetMaster.ts"/>
-var LsMemberItem = (function () {
-    function LsMemberItem() {
-    }
-    return LsMemberItem;
-})();
-
 var Page;
 (function (Page) {
     Page.memberMap;
@@ -35,8 +30,13 @@ var Page;
     Page.initialize = initialize;
 
     var ViewModel = (function () {
-        function ViewModel(allShipToggleHide, activeShipId, _fleets) {
+        function ViewModel(allShipToggleHide, activeShipId) {
             var _this = this;
+            this.memberShip = {
+                getName: function (id) {
+                    return MemberShipMaster.getMember(id).name;
+                }
+            };
             this.onShipTypeClick = function (item) {
                 item.selected(!item.selected());
 
@@ -64,20 +64,13 @@ var Page;
                 _this.activeShip(item);
                 saveToStorage();
             };
-            this.onMyFleetsClick = function (item) {
-                _this.activeFleet(item);
-            };
             this.onAllShipToggleClick = function () {
                 _this.allShipToggle.isClose(!_this.allShipToggle.isClose());
 
                 saveToStorage();
             };
             this.onAddShipClick = function () {
-                console.log(_this.activeFleet().ships());
-
-                _this.activeFleet().ships.push(_this.activeShip());
-
-                console.log(_this.activeFleet().ships());
+                _this.activeFleet().o_memberIds.push(_this.activeShip().memberId);
 
                 saveToStorage();
             };
@@ -87,12 +80,34 @@ var Page;
 
                 saveToStorage();
             };
-            this.onAddFleetClick = function () {
-                // this.myFleets.push(new Fleet("第" + (this.myFleets().length + 1) + "艦隊"));
-                saveToStorage();
+            this.member = {
+                remove: function () {
+                    MemberShipMaster.remove(_this.activeShip());
+                    _this.activeShip(MemberShip.empty());
+
+                    saveToStorage();
+                }
             };
-            this.onRemoveFleetShipClick = function () {
-                alert();
+            this.fleet = {
+                activate: function (item) {
+                    _this.activeFleet(item);
+                },
+                addFleet: function () {
+                    FleetMaster.insert();
+                    saveToStorage();
+                },
+                removeFleet: function () {
+                    FleetMaster.remove(_this.activeFleet());
+                    saveToStorage();
+                },
+                addMember: function (member) {
+                    _this.activeFleet().appendMember(member.memberId);
+                    saveToStorage();
+                },
+                removeMember: function (member) {
+                    _this.activeFleet().removeMember(member.memberId);
+                    saveToStorage();
+                }
             };
             this.allShips = ShipMaster.list;
 
@@ -116,14 +131,24 @@ var Page;
 
             this.allShipToggle = new AllShipToggle(allShipToggleHide);
 
-            if (!_fleets || _fleets.length < 1) {
-                this.myFleets = ko.observableArray([]);
-            } else {
-                this.myFleets = ko.observableArray(_fleets);
+            this.myFleets = FleetMaster.list;
+
+            if (this.myFleets().length < 1) {
+                var fleet = FleetMaster.insert();
             }
 
             this.activeFleet = ko.observable(this.myFleets()[0]);
         }
+        ViewModel.prototype.activeFleetMembers = function () {
+            var list = [];
+
+            this.activeFleet().o_memberIds().forEach(function (value, index) {
+                list.push(MemberShipMaster.getMember(value));
+            });
+
+            return list;
+        };
+
         ViewModel.prototype.getShipTypeName = function (item) {
             if (item.type in ShipTypeMaster.map) {
                 return ShipTypeMaster.map[item.type].name;
@@ -138,6 +163,10 @@ var Page;
             } else {
                 return "";
             }
+        };
+
+        ViewModel.prototype.getMemberShip = function (id) {
+            return MemberShipMaster.getMember(id);
         };
         return ViewModel;
     })();
@@ -167,11 +196,11 @@ var Page;
             $.Deferred(function (dfd) {
                 setTimeout(dfd.resolve, 1000);
             }).promise().then(function () {
-                localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
                 localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
                 localStorage[LS_KEY.ACTIVE_SHIP_ID] = viewModel.activeShip().shipId;
+                localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().fleetId;
 
-                // localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().fleetId;
+                MemberShipMaster.saveToStorage();
                 FleetMaster.saveToStorage();
             }).done(function () {
                 savePromised = false;
@@ -184,5 +213,7 @@ var Page;
 $(document).ready(function () {
     ShipMaster.initialize().then(function () {
         MemberShipMaster.initialize(Page.saveToStorage);
-    }).then(ShipTypeMaster.initialize).then(FleetMaster.initialize).done(Page.initialize);
+    }).then(ShipTypeMaster.initialize).then(function () {
+        FleetMaster.initialize(Page.saveToStorage);
+    }).done(Page.initialize);
 });

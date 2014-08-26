@@ -19,21 +19,27 @@ var MemberShipMaster;
 
     function initialize(_onLevelSubscribe) {
         onLevelSubscribe = _onLevelSubscribe;
+        MemberShipMaster.map = {};
 
         return jQuery.Deferred(function (dfd) {
             if (localStorage[LS_KEY.FINAL_FLEET_SEQ]) {
                 memberSeq = parseInt(localStorage[LS_KEY.FINAL_MEMBER_SEQ]);
+                if (isNaN(memberSeq)) {
+                    memberSeq = 0;
+                }
             } else {
                 memberSeq = 0;
             }
 
             var _list = [];
-            if (localStorage[LS_KEY.MEMBER]) {
-                var value = JSON.parse(localStorage[LS_KEY.MEMBER]);
+            if (localStorage[LS_KEY.MEMBER_SHIPS]) {
+                var value = JSON.parse(localStorage[LS_KEY.MEMBER_SHIPS]);
 
                 if (value && 0 < value.length) {
                     value.forEach(function (item) {
-                        _list.push(new MemberShip(item.shipId, item.name, item.type, item.level, item.memberId, onLevelSubscribe));
+                        var member = new MemberShip(item.shipId, item.name, item.type, item.level, item.memberId, onLevelSubscribe);
+                        _list.push(member);
+                        MemberShipMaster.map[member.memberId] = member;
                     });
                 }
             }
@@ -44,6 +50,15 @@ var MemberShipMaster;
         }).promise();
     }
     MemberShipMaster.initialize = initialize;
+
+    function getMember(memberId) {
+        if (memberId in MemberShipMaster.map) {
+            return MemberShipMaster.map[memberId];
+        }
+
+        return MemberShip.empty();
+    }
+    MemberShipMaster.getMember = getMember;
 
     function insert(shipId, name, type, level) {
         var member = new MemberShip(shipId, name, type, level, String(memberSeq++), onLevelSubscribe);
@@ -58,6 +73,12 @@ var MemberShipMaster;
         MemberShipMaster.list.remove(memberShip);
     }
     MemberShipMaster.remove = remove;
+
+    function saveToStorage() {
+        localStorage[LS_KEY.FINAL_MEMBER_SEQ] = memberSeq;
+        localStorage[LS_KEY.MEMBER_SHIPS] = JSON.stringify(MemberShipMaster.list());
+    }
+    MemberShipMaster.saveToStorage = saveToStorage;
 })(MemberShipMaster || (MemberShipMaster = {}));
 
 var MemberShip = (function (_super) {

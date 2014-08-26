@@ -6,15 +6,8 @@
 /// <reference path="./common/LocalStorage.ts"/>
 /// <reference path="./master/ShipTypeMaster.ts"/>
 /// <reference path="./master/ShipMaster.ts"/>
+/// <reference path="./master/MemberShipMaster.ts"/>
 /// <reference path="./master/FleetMaster.ts"/>
-
-class LsMemberItem {
-	shipId: string;
-	name: string;
-	type: string;
-	level: number;
-	memberId: string;
-}
 
 module Page {
 
@@ -42,8 +35,7 @@ module Page {
 
 		constructor(
 			allShipToggleHide: boolean,
-			activeShipId?: string,
-			_fleets?: Array<Fleet>
+			activeShipId?: string
 			) {
 
 			this.allShips = ShipMaster.list;
@@ -65,14 +57,25 @@ module Page {
 
 			this.allShipToggle = new AllShipToggle(allShipToggleHide);
 
-			if (!_fleets || _fleets.length < 1) {
-				this.myFleets = ko.observableArray([]);
-			}
-			else {
-				this.myFleets = ko.observableArray(_fleets);
+			this.myFleets = FleetMaster.list;
+
+			if (this.myFleets().length < 1) {
+				var fleet = FleetMaster.insert();
 			}
 
 			this.activeFleet = ko.observable(this.myFleets()[0]);
+
+		}
+
+		activeFleetMembers(): Array<MemberShip> {
+
+			var list: Array<MemberShip> = [];
+
+			this.activeFleet().o_memberIds().forEach((value, index) => {
+				list.push(MemberShipMaster.getMember(value));
+			});
+
+			return list;
 		}
 
 		allShips: Array<Ship>;
@@ -109,6 +112,18 @@ module Page {
 			}
 		}
 
+		getMemberShip(id: string): MemberShip {
+			return MemberShipMaster.getMember(id);
+		}
+
+		memberShip = {
+
+			getName(id: string): string {
+				return MemberShipMaster.getMember(id).name;
+			}
+
+		}
+
 		onShipTypeClick = (item: ShipType) => {
 			item.selected(!item.selected());
 
@@ -139,10 +154,6 @@ module Page {
 			saveToStorage();
 		}
 
-		onMyFleetsClick = (item: Fleet) => {
-			this.activeFleet(item);
-		}
-
 		onAllShipToggleClick = () => {
 			this.allShipToggle.isClose(!this.allShipToggle.isClose());
 
@@ -151,11 +162,7 @@ module Page {
 
 		onAddShipClick = () => {
 
-			console.log(this.activeFleet().ships());
-
-			this.activeFleet().ships.push(this.activeShip());
-
-			console.log(this.activeFleet().ships());
+			this.activeFleet().o_memberIds.push(this.activeShip().memberId);
 
 			saveToStorage();
 		}
@@ -167,16 +174,45 @@ module Page {
 			saveToStorage();
 		}
 
-		onAddFleetClick = () => {
+		member: {} = {
 
-			// this.myFleets.push(new Fleet("第" + (this.myFleets().length + 1) + "艦隊"));
+			remove: () => {
+				MemberShipMaster.remove(this.activeShip());
+				this.activeShip(MemberShip.empty());
 
-			saveToStorage();
+				saveToStorage();
+			}
+
 		}
 
-		onRemoveFleetShipClick = () => {
-			alert();
+		fleet: {} = {
+
+			activate: (item: Fleet) => {
+				this.activeFleet(item);
+			},
+
+			addFleet: () => {
+				FleetMaster.insert();
+				saveToStorage();
+			},
+
+			removeFleet: () => {
+				FleetMaster.remove(this.activeFleet());
+				saveToStorage();
+			},
+
+			addMember: (member: MemberShip) => {
+				this.activeFleet().appendMember(member.memberId);
+				saveToStorage();
+			},
+
+			removeMember: (member: MemberShip) => {
+				this.activeFleet().removeMember(member.memberId);
+				saveToStorage();
+			}
+
 		}
+
 	}
 
 	export class AllShipToggle {
@@ -209,11 +245,11 @@ module Page {
 			}).promise()
 				.then(() => {
 
-					localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
 					localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
 					localStorage[LS_KEY.ACTIVE_SHIP_ID] = viewModel.activeShip().shipId;
-					// localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().fleetId;
+					localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().fleetId;
 
+					MemberShipMaster.saveToStorage();
 					FleetMaster.saveToStorage();
 
 				}).done(() => {
@@ -231,6 +267,8 @@ $(document).ready(() => {
 			MemberShipMaster.initialize(Page.saveToStorage);
 		})
 		.then(ShipTypeMaster.initialize)
-		.then(FleetMaster.initialize)
+		.then(() => {
+			FleetMaster.initialize(Page.saveToStorage);
+		})
 		.done(Page.initialize);
 });

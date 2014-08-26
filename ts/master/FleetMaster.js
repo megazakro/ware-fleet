@@ -3,48 +3,123 @@ var FleetMaster;
 (function (FleetMaster) {
     var fleetSeq;
 
-    var list;
+    var onFleetNameSubscribe;
 
-    function initialize(_list) {
-        if (localStorage[LS_KEY.FINAL_FLEET_SEQ]) {
-            fleetSeq = parseInt(localStorage[LS_KEY.FINAL_FLEET_SEQ]);
-        } else {
-            fleetSeq = 0;
-        }
+    FleetMaster.list;
 
-        list = _list;
+    function initialize(_onFleetNameSubscribe) {
+        onFleetNameSubscribe = _onFleetNameSubscribe;
 
         return jQuery.Deferred(function (dfd) {
+            if (localStorage[LS_KEY.FINAL_FLEET_SEQ]) {
+                fleetSeq = parseInt(localStorage[LS_KEY.FINAL_FLEET_SEQ]);
+                if (isNaN(fleetSeq)) {
+                    fleetSeq = 0;
+                }
+            } else {
+                fleetSeq = 0;
+            }
+
+            var _list = [];
+            if (localStorage[LS_KEY.FLEETS]) {
+                var value = JSON.parse(localStorage[LS_KEY.FLEETS]);
+
+                console.log(localStorage[LS_KEY.FLEETS]);
+
+                if (value && 0 < value.length) {
+                    value.forEach(function (item) {
+                        _list.push(new Fleet(item.shipId, item.name, item.memberIds, _onFleetNameSubscribe));
+                    });
+                }
+            }
+
+            FleetMaster.list = ko.observableArray(_list);
+
             dfd.resolve();
         }).promise();
     }
     FleetMaster.initialize = initialize;
 
-    function append(name) {
-        var fleet = new Fleet(String(fleetSeq++), name);
+    function insert(name) {
+        var fleetName;
+        if (!name) {
+            fleetName = "第" + (FleetMaster.list().length + 1) + "艦隊";
+        } else {
+            fleetName = name;
+        }
 
-        list.push(fleet);
+        var fleet = new Fleet(String(fleetSeq++), fleetName, [], onFleetNameSubscribe);
+
+        FleetMaster.list.push(fleet);
 
         return fleet;
     }
-    FleetMaster.append = append;
+    FleetMaster.insert = insert;
+
+    function remove(fleet) {
+        FleetMaster.list.remove(fleet);
+    }
+    FleetMaster.remove = remove;
 
     function saveToStorage() {
         localStorage[LS_KEY.FINAL_FLEET_SEQ] = fleetSeq;
+
+        localStorage[LS_KEY.FLEETS] = JSON.stringify(FleetMaster.list());
+
+        console.log(localStorage[LS_KEY.FLEETS]);
     }
     FleetMaster.saveToStorage = saveToStorage;
 })(FleetMaster || (FleetMaster = {}));
 
 var Fleet = (function () {
-    function Fleet(fleetId, _name, _ships) {
+    function Fleet(fleetId, name, memberIds, onItemSubscribe) {
+        var _this = this;
         this.fleetId = fleetId;
-        this.name = ko.observable(_name);
+        this.name = name;
+        this.memberIds = memberIds;
+        this.o_name = ko.observable(name);
 
-        if (!_ships || _ships.length < 1) {
-            this.ships = ko.observableArray([]);
+        this.memberIds = [];
+        if (!memberIds || memberIds.length < 1) {
+            this.o_memberIds = ko.observableArray([]);
         } else {
-            this.ships = ko.observableArray(_ships);
+            this.o_memberIds = ko.observableArray(memberIds);
         }
+
+        //this.o_memberIds.subscribe((newValue) => {
+        //	// alert(newValue);
+        //	if (0 < newValue.length) {
+        //		this.memberIds = newValue;
+        //	}
+        //	//if (onItemSubscribe) {
+        //	//	onItemSubscribe();
+        //	//}
+        //});
+        this.o_name.subscribe(function (value) {
+            _this.name = value;
+            if (onItemSubscribe) {
+                onItemSubscribe();
+            }
+        });
     }
+    Fleet.prototype.appendMember = function (id) {
+        alert(id + " " + this.memberIds.indexOf(id));
+
+        if (this.memberIds.length < 6) {
+            if (this.memberIds.indexOf(id) < 0) {
+                this.o_memberIds.push(id);
+                this.memberIds = this.o_memberIds();
+            }
+        }
+    };
+
+    Fleet.prototype.removeMember = function (id) {
+        alert(id + " " + this.memberIds.indexOf(id));
+
+        if (0 <= this.memberIds.indexOf(id)) {
+            this.o_memberIds.remove(id);
+            this.memberIds = this.o_memberIds();
+        }
+    };
     return Fleet;
 })();

@@ -11,30 +11,36 @@ module MemberShipMaster {
 
 	export var list: KnockoutObservableArray<MemberShip>;
 
-	export var map: { [key: string]: Ship };
+	export var map: { [key: string]: MemberShip };
 
 	export function initialize(_onLevelSubscribe: () => void): JQueryPromise<{}> {
 
 		onLevelSubscribe = _onLevelSubscribe;
+		map = {};
 
 		return jQuery.Deferred((dfd) => {
 
 			if (localStorage[LS_KEY.FINAL_FLEET_SEQ]) {
 				memberSeq = parseInt(localStorage[LS_KEY.FINAL_MEMBER_SEQ]);
+				if (isNaN(memberSeq)) {
+					memberSeq = 0;
+				}
 			}
 			else {
 				memberSeq = 0;
 			}
 
 			var _list: Array<MemberShip> = [];
-			if (localStorage[LS_KEY.MEMBER]) {
+			if (localStorage[LS_KEY.MEMBER_SHIPS]) {
 
-				var value: Array<any> = JSON.parse(localStorage[LS_KEY.MEMBER]);
+				var value: Array<any> = JSON.parse(localStorage[LS_KEY.MEMBER_SHIPS]);
 
 				if (value && 0 < value.length) {
 
-					value.forEach((item: LsMemberItem) => {
-						_list.push(new MemberShip(item.shipId, item.name, item.type, item.level, item.memberId, onLevelSubscribe));
+					value.forEach((item: MemberShipsItem) => {
+						var member = new MemberShip(item.shipId, item.name, item.type, item.level, item.memberId, onLevelSubscribe);
+						_list.push(member);
+						map[member.memberId] = member;
 					});
 				}
 			}
@@ -43,6 +49,15 @@ module MemberShipMaster {
 
 			dfd.resolve();
 		}).promise();
+	}
+
+	export function getMember(memberId: string): MemberShip {
+
+		if (memberId in map) {
+			return map[memberId];
+		}
+
+		return MemberShip.empty();
 	}
 
 	export function insert(shipId: string, name: string, type: string, level: number) : MemberShip {
@@ -56,6 +71,13 @@ module MemberShipMaster {
 
 	export function remove(memberShip : MemberShip) {
 		list.remove(memberShip);
+	}
+
+	export function saveToStorage() {
+
+		localStorage[LS_KEY.FINAL_MEMBER_SEQ] = memberSeq;
+		localStorage[LS_KEY.MEMBER_SHIPS] = JSON.stringify(list());
+
 	}
 
 }
