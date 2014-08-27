@@ -14,33 +14,12 @@ module ShipMaster {
 
 		return jQuery.Deferred((dfd) => {
 
-			jQuery.ajax({
-				url: "./json/myship.json",
-				dataType: "JSON"
-			})
-				.then((data) => {
+			list = allShips();
 
-					data.ships.forEach((value) => {
-						list.push(new Ship(value.id, value.name, value.type, 1));
-					});
-
-				})
-				.done(() => {
-					dfd.resolve();
-				});
+			dfd.resolve();
 
 		}).promise();
 	}
 
 }
 
-class Ship {
-	constructor(
-		public shipId: string,
-		public name: string,
-		public type: string,
-		public level: number
-		) {
-
-	}
-}

@@ -79,7 +79,6 @@ var Fleet = (function () {
         this.memberIds = memberIds;
         this.o_name = ko.observable(name);
 
-        this.memberIds = [];
         if (!memberIds || memberIds.length < 1) {
             this.o_memberIds = ko.observableArray([]);
         } else {
@@ -103,11 +102,12 @@ var Fleet = (function () {
         });
     }
     Fleet.prototype.appendMember = function (id) {
-        alert(id + " " + this.memberIds.indexOf(id));
+        alert(this.memberIds);
+        alert(id + " " + this.memberIds.indexOf("" + id));
 
         if (this.memberIds.length < 6) {
-            if (this.memberIds.indexOf(id) < 0) {
-                this.o_memberIds.push(id);
+            if (this.memberIds.indexOf("" + id) < 0) {
+                this.o_memberIds.push("" + id);
                 this.memberIds = this.o_memberIds();
             }
         }
