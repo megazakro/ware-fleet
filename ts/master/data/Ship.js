@@ -73,30 +73,33 @@ var ShipMaster;
         ships.push(new Ship("0306_0", ShipTypes.CV, "瑞鶴", 1));
         ships.push(new Ship("0306_1", ShipTypes.CV, "瑞鶴改", 25));
 
+        ships.push(new Ship("0307_0", ShipTypes.CV, "雲龍", 1));
+        ships.push(new Ship("0307_1", ShipTypes.CV, "雲龍改", 50));
+
         ships.push(new Ship("0401_0", ShipTypes.ACV, "大鳳", 1));
         ships.push(new Ship("0401_1", ShipTypes.ACV, "大鳳改", 40));
 
-        ships.push(new Ship("0501_0", ShipTypes.CL, "鳳翔", 1));
-        ships.push(new Ship("0501_1", ShipTypes.CL, "鳳翔改", 25));
+        ships.push(new Ship("0501_0", ShipTypes.CVL, "鳳翔", 1));
+        ships.push(new Ship("0501_1", ShipTypes.CVL, "鳳翔改", 25));
 
-        ships.push(new Ship("0502_0", ShipTypes.CL, "龍驤", 1));
-        ships.push(new Ship("0502_1", ShipTypes.CL, "龍驤改", 25));
-        ships.push(new Ship("0502_2", ShipTypes.CL, "龍驤改二", 75));
+        ships.push(new Ship("0502_0", ShipTypes.CVL, "龍驤", 1));
+        ships.push(new Ship("0502_1", ShipTypes.CVL, "龍驤改", 25));
+        ships.push(new Ship("0502_2", ShipTypes.CVL, "龍驤改二", 75));
 
-        ships.push(new Ship("0503_0", ShipTypes.CL, "龍鳳", 25));
-        ships.push(new Ship("0503_1", ShipTypes.CL, "龍鳳改", 50));
+        ships.push(new Ship("0503_0", ShipTypes.CVL, "龍鳳", 25));
+        ships.push(new Ship("0503_1", ShipTypes.CVL, "龍鳳改", 50));
 
-        ships.push(new Ship("0504_0", ShipTypes.CL, "祥鳳", 1));
-        ships.push(new Ship("0504_1", ShipTypes.CL, "祥鳳改", 25));
+        ships.push(new Ship("0504_0", ShipTypes.CVL, "祥鳳", 1));
+        ships.push(new Ship("0504_1", ShipTypes.CVL, "祥鳳改", 25));
 
-        ships.push(new Ship("0505_0", ShipTypes.CL, "瑞鳳", 1));
-        ships.push(new Ship("0505_1", ShipTypes.CL, "瑞鳳改", 25));
+        ships.push(new Ship("0505_0", ShipTypes.CVL, "瑞鳳", 1));
+        ships.push(new Ship("0505_1", ShipTypes.CVL, "瑞鳳改", 25));
 
-        ships.push(new Ship("0506_0", ShipTypes.CL, "飛鷹", 1));
-        ships.push(new Ship("0506_1", ShipTypes.CL, "飛鷹改", 25));
+        ships.push(new Ship("0506_0", ShipTypes.CVL, "飛鷹", 1));
+        ships.push(new Ship("0506_1", ShipTypes.CVL, "飛鷹改", 25));
 
-        ships.push(new Ship("0507_0", ShipTypes.CL, "隼鷹", 1));
-        ships.push(new Ship("0507_1", ShipTypes.CL, "隼鷹改", 25));
+        ships.push(new Ship("0507_0", ShipTypes.CVL, "隼鷹", 1));
+        ships.push(new Ship("0507_1", ShipTypes.CVL, "隼鷹改", 25));
 
         ships.push(new Ship("0601_0", ShipTypes.AV, "千歳", 1));
         ships.push(new Ship("0601_1", ShipTypes.AV, "千歳改", 10));
