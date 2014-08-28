@@ -6,14 +6,38 @@ body {
 	color: #334;
 }
 
-.myships_container {
+.hide {
+	display: none;
+}
+
+.container {
 	/*
 	border: 1px solid red;
 	*/
 }
 
-	.myships_container h4 {
+	.container h4 {
 		margin: 3px;
+	}
+
+		.container h4.with_toggle {
+		}
+
+	.container .toggle {
+		display: block;
+		width: 18px;
+		height: 18px;
+		float: right;
+		border-radius: 4px;
+		border-color: #d16b16;
+		border-width: 1px;
+		border-style: solid;
+		text-align: center;
+		padding: 0px;
+		line-height: 16px;
+		vertical-align: middle;
+		cursor: pointer;
+		font-weight: normal;
 	}
 
 .border_box {
@@ -21,6 +45,19 @@ body {
 	border: 2px solid navy;
 	background-color: #b0d7f4;
 	padding: 10px 10px;
+}
+
+.noborder_box {
+	background-color: #b0d7f4;
+	padding: 0px 0px;
+}
+
+
+.border_section {
+	background-color: #fdfdfd;
+	padding: 0px 5px;
+	border-radius: 4px;
+	border: 1px solid #b0d7f4;
 }
 
 ul.list {
@@ -35,16 +72,30 @@ ul.list {
 		margin-bottom: 4px;
 	}
 
+a.button {
+	display: inline-block;
+	border-radius: 4px;
+	border-style: solid;
+	border-width: 1px;
+	padding: 3px 10px;
+	text-decoration: none;
+	font-weight: bold;
+	height: 22px;
+}
+
+input.textbox {
+	border-color: #909090;
+	border-style: solid;
+	border-width: 1px;
+	padding: 3px;
+}
+
 /* parts */
 
 #sec_myships {
 	width: 98%;
 	margin-left: auto;
 	margin-right: auto;
-	background-color: #fdfdfd;
-	padding: 0px 5px;
-	border-radius: 4px;
-	border: 1px solid #b0d7f4;
 }
 
 	#sec_myships h3 {
@@ -57,6 +108,7 @@ ul.list {
 
 #div_myships {
 	width: 68%;
+	min-width: 450px;
 	display: inline-block;
 }
 
@@ -86,10 +138,14 @@ ul.ship_type {
 
 ul.all_ship {
 	margin-top: 0px;
-	min-height: 40px;
-	max-height: 240px;
+	/*min-height: 40px;*/
+	height: 160px;
 	overflow-y: scroll;
 }
+
+	ul.all_ship.close {
+		height: 0px;
+	}
 
 	ul.all_ship li {
 		display: inline-block;
@@ -98,27 +154,31 @@ ul.all_ship {
 		cursor: pointer;
 	}
 
-		ul.all_ship li:hover {
-			border-color: #d16b16;
-			border-width: 2px;
-		}
+	ul.all_ship.close li {
+		display: none;
+	}
 
-		ul.all_ship li span {
-			line-height: 16px;
-			vertical-align: top;
-		}
+	ul.all_ship li:hover {
+		border-color: #d16b16;
+		border-width: 2px;
+	}
 
-			ul.all_ship li span.ship_type {
-				display: inline-block;
-				font-size: 0.9em;
-				color: red;
-				width: 50px;
-				text-align: left;
-			}
+	ul.all_ship li span {
+		line-height: 16px;
+		vertical-align: top;
+	}
+
+		ul.all_ship li span.ship_type {
+			display: inline-block;
+			font-size: 0.9em;
+			color: red;
+			width: 50px;
+			text-align: left;
+		}
 
 ul.myships {
 	margin-top: 0px;
-	min-height: 40px;
+	min-height: 30px;
 	max-height: 240px;
 	overflow-y: scroll;
 	margin-bottom: 10px;
@@ -127,6 +187,9 @@ ul.myships {
 	ul.myships li {
 		display: inline-block;
 		cursor: pointer;
+		padding-top: 0px;
+		padding-bottom: 0px;
+		min-height: 26px;
 	}
 
 		ul.myships li:hover {
@@ -134,23 +197,40 @@ ul.myships {
 			border-width: 2px;
 		}
 
-		ul.myships li span.ship_type {
-			display: inline-block;
-			font-size: 0.9em;
-			color: red;
-			width: 50px;
-			text-align: left;
+		ul.myships li.active {
+			border-color: #d16b16;
+			border-width: 2px;
 		}
 
-		ul.myships li span.name {
-			display: inline-block;
-			width: 80px;
+		ul.myships li span {
+			vertical-align: middle;
+			line-height: 20px;
 		}
 
-		ul.myships li span.level {
-			display: inline-block;
-			width: 50px;
-		}
+			ul.myships li span.ship_type {
+				display: inline-block;
+				font-size: 0.9em;
+				color: red;
+				width: 50px;
+				text-align: left;
+			}
+
+			ul.myships li span.name {
+				display: inline-block;
+				width: 80px;
+			}
+
+			ul.myships li span.level_label {
+				display: inline-block;
+				width: 20px;
+				text-align: left;
+			}
+
+			ul.myships li span.level {
+				display: inline-block;
+				width: 30px;
+				text-align: right;
+			}
 
 #div_ship_status {
 	width: 30%;
@@ -174,14 +254,28 @@ ul.myships {
 		height: 200px;
 	}
 
-		#div_ship_status div.spec span.type {
-			display: inline-block;
+		#div_ship_status div.spec span {
+			vertical-align: bottom;
+			line-height: 26px;
 		}
 
-		#div_ship_status div.spec span.name {
-			display: inline-block;
-			display: block;
-			font-size: 1.2em;
+			#div_ship_status div.spec span.type {
+				display: inline-block;
+			}
+
+			#div_ship_status div.spec span.name {
+				display: inline-block;
+				display: block;
+				font-size: 1.2em;
+			}
+
+			#div_ship_status div.spec span.level {
+			}
+
+		#div_ship_status div.spec input.level {
+			width: 30px;
+			text-align: right;
+			margin-left: 5px;
 		}
 
 	#div_ship_status div.command {
@@ -194,14 +288,6 @@ ul.myships {
 	}
 
 		#div_ship_status div.command a {
-			display: inline-block;
-			border-radius: 4px;
-			border-style: solid;
-			border-width: 1px;
-			padding: 3px 10px;
-			text-decoration: none;
-			font-weight: bold;
-			height: 22px;
 		}
 
 			#div_ship_status div.command a.remove {
@@ -217,3 +303,119 @@ ul.myships {
 				color: #ffffff;
 				float: right;
 			}
+
+#sec_myfleets {
+	width: 98%;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 5px;
+}
+
+	#sec_myfleets h3 {
+		margin: 3px;
+	}
+
+#div_fleet_list {
+	width: 49%;
+	min-width: 450px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+	#div_fleet_list div.border_box {
+		padding-top: 0px;
+	}
+
+	#div_fleet_list h4 {
+		vertical-align: middle;
+		height: 24px;
+	}
+
+	#div_fleet_list div.command {
+		padding: 0px;
+		height: 30px;
+	}
+
+		#div_fleet_list div.command a.add {
+			border-color: #019c96;
+			background-color: #019c96;
+			color: #ffffff;
+			float: right;
+		}
+
+ul.myfleets {
+	margin-top:10px;
+}
+
+	ul.myfleets li {
+		display: inline-block;
+		cursor: pointer;
+		padding-top: 0px;
+		padding-bottom: 0px;
+		width: 200px;
+		height: 50px;
+		vertical-align: top;
+	}
+
+		ul.myfleets li:hover {
+			border-color: #d16b16;
+			border-width: 2px;
+		}
+
+		ul.myfleets li.active {
+			border-color: #d16b16;
+			border-width: 2px;
+		}
+
+		ul.myfleets li span {
+			vertical-align: middle;
+			line-height: 20px;
+		}
+
+			ul.myfleets li span.name {
+				display: inline-block;
+			}
+
+		ul.myfleets li div.ship_type {
+			font-size: 0.9em;
+			color: red;
+			height: 20px;
+			min-width: 20px;
+		}
+
+#div_active_fleet {
+	width: 50%;
+	min-width: 200px;
+	display: inline-block;
+	vertical-align: top;
+}
+
+	#div_active_fleet h4 {
+		vertical-align: middle;
+		height: 24px;
+	}
+
+	#div_active_fleet input.fleet_name {
+		margin-left: 5px;
+		vertical-align: top;
+	}
+
+	#div_active_fleet a.button.remove {
+		border-color: #909090;
+		background-color: #c0c0c0;
+		color: #101010;
+		font-size: 0.9em;
+		height: 20px;
+	}
+
+	#div_active_fleet div.command {
+		padding: 0px;
+		height: 30px;
+	}
+
+		#div_active_fleet div.command a.remove {
+			border-color: #c60019;
+			background-color: #c60019;
+			color: #ffffff;
+			float: left;
+		}

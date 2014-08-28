@@ -1,69 +1,32 @@
 ﻿
 /// <reference path="../Scripts/typings/jquery/jquery.d.ts"/>
+/// <reference path="../Scripts/linq.d.ts"/>
 /// <reference path="../Scripts/typings/knockout/knockout.d.ts"/>
 /// <reference path="../Scripts/typings/underscore/underscore.d.ts"/>
-
-class LS_KEY {
-	static SEQ: string = "SEQ";
-	static MEMBER: string = "MEMBER";
-}
-
-class LsMemberItem {
-	shipId: string;
-	name: string;
-	type: string;
-	level: number;
-	memberId: string;
-}
+/// <reference path="./common/LocalStorage.ts"/>
+/// <reference path="./master/ShipTypeMaster.ts"/>
+/// <reference path="./master/ShipMaster.ts"/>
+/// <reference path="./master/MemberShipMaster.ts"/>
+/// <reference path="./master/FleetMaster.ts"/>
 
 module Page {
 
-	export var shipData: Array<Ship>;
-
-	export var shipTypeMap: { [key: string]: ShipType };
-	export var memberMap: { [key: string]: Ship };
-
-	var seq: number = 0;
+	export var memberMap: { [key: string]: MemberShip };
 
 	var viewModel: ViewModel;
 
 	export function initialize() {
 
-		var selectedDefault = true;
-		var shipTypeArray = [
-			{ id: "01", name: "戦艦", shortName: "戦", selected: ko.observable(selectedDefault) },
-			{ id: "02", name: "航空戦艦", shortName: "戦", selected: ko.observable(selectedDefault) },
-			{ id: "03", name: "正規空母", shortName: "航", selected: ko.observable(selectedDefault) },
-			{ id: "04", name: "装甲空母", shortName: "装母", selected: ko.observable(selectedDefault) },
-			{ id: "05", name: "軽空母", shortName: "軽母", selected: ko.observable(selectedDefault) },
-			{ id: "06", name: "水上機母艦", shortName: "水母", selected: ko.observable(selectedDefault) },
-			{ id: "07", name: "重巡洋艦", shortName: "重巡", selected: ko.observable(selectedDefault) },
-			{ id: "08", name: "航空巡洋艦", shortName: "航巡", selected: ko.observable(selectedDefault) },
-			{ id: "09", name: "軽巡洋艦", shortName: "軽巡", selected: ko.observable(selectedDefault) },
-			{ id: "10", name: "駆逐艦", shortName: "駆", selected: ko.observable(selectedDefault) },
-		];
-
-		shipTypeMap = {};
-		shipTypeArray.forEach((value) => {
-			shipTypeMap[value.id] = value;
-		});
-
 		memberMap = {};
 
-		var myShips: Array<Ship>= [];
-		if (localStorage[LS_KEY.MEMBER]) {
-
-			var value: Array<any> = JSON.parse(localStorage[LS_KEY.MEMBER]);
-
-			if (value && 0 < value.length) {
-
-				value.forEach((item: LsMemberItem) => {
-					myShips.push(new Ship(item.shipId, item.name, item.type, item.level, item.memberId));
-				});
-			}
+		var allShipToggleIsClose = false;
+		if (localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE]) {
+			allShipToggleIsClose = ("true" == localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE]);
 		}
 
-		viewModel = new ViewModel(ko.observableArray(shipTypeArray), shipData, ko.observable(new Ship("", "", "")), myShips);
+		var activeShipId = localStorage[LS_KEY.ACTIVE_SHIP_ID];
+
+		viewModel = new ViewModel(allShipToggleIsClose, activeShipId);
 
 		ko.applyBindings(viewModel);
 	}
@@ -71,23 +34,97 @@ module Page {
 	export class ViewModel {
 
 		constructor(
-			public shipTypes: KnockoutObservableArray<ShipType>,
-			public allShips: Array<Ship>,
-			public activeShip: KnockoutObservable<Ship>,
-			myShips : Array<Ship>
+			allShipToggleHide: boolean,
+			activeShipId?: string
 			) {
 
-			if (myShips) {
-				this.myShips = ko.observableArray(myShips);
+			this.allShips = ShipMaster.list;
+
+			this.shipTypes = ShipTypeMaster.list;
+
+			this.myShips = MemberShipMaster.list;
+
+			if (activeShipId) {
+				var ship = Enumerable.from(this.myShips())
+					.where((item) => (item.shipId == activeShipId))
+					.select((item) => item).firstOrDefault((item, index) => true, MemberShip.empty());
+
+				this.activeShip = ko.observable(ship);
 			}
 			else {
-				this.myShips = ko.observableArray([]);
+				this.activeShip = ko.observable(MemberShip.empty());
+			}
+
+			this.allShipToggle = new AllShipToggle(allShipToggleHide);
+
+			this.myFleets = FleetMaster.list;
+
+			if (this.myFleets().length < 1) {
+				var fleet = FleetMaster.insert();
+			}
+
+			this.activeFleet = ko.observable(this.myFleets()[0]);
+
+		}
+
+		activeFleetMembers(): Array<MemberShip> {
+
+			var list: Array<MemberShip> = [];
+
+			this.activeFleet().o_memberIds().forEach((value, index) => {
+
+				var member = MemberShipMaster.getMember(value);
+
+				console.log(member);
+
+				list.push(MemberShipMaster.getMember(value));
+			});
+
+			return list;
+		}
+
+		allShips: Array<Ship>;
+
+		activeShip: KnockoutObservable<MemberShip>;
+
+		activeFleet: KnockoutObservable<Fleet>;
+
+		shipTypes: Array<ShipType>;
+
+		myShips: KnockoutObservableArray<MemberShip>;
+
+		myFleets: KnockoutObservableArray<Fleet>;
+
+		allShipToggle: AllShipToggle;
+
+		getShipTypeName(item: Ship): string {
+
+			if (item.type in ShipTypeMaster.map) {
+				return ShipTypeMaster.map[item.type].name;
+			}
+			else {
+				return "";
 			}
 		}
 
-		myShips: KnockoutObservableArray<Ship>;
+		getShipTypeShortName(item: Ship, withoutBracket? : boolean) : string {
 
-		public onShipTypeClick = (item: ShipType) => {
+			if (item.type in ShipTypeMaster.map) {
+				if (withoutBracket) {
+					return ShipTypeMaster.map[item.type].shortName;
+				}
+				return "[" + ShipTypeMaster.map[item.type].shortName + "]";
+			}
+			else {
+				return "";
+			}
+		}
+
+		getMemberShip(id: string): MemberShip {
+			return MemberShipMaster.getMember(id);
+		}
+
+		onShipTypeClick = (item: ShipType) => {
 			item.selected(!item.selected());
 
 			var shows = $("#ul_ship_type li.selected").map((index, element) => {
@@ -107,96 +144,152 @@ module Page {
 			}
 		}
 
-		public onAllShipsClick = (item: Ship) => {
-			this.myShips.push(item);
-			memberMap[item.memberId] = item;
+		onAllShipsClick = (selected: Ship) => {
+			MemberShipMaster.insert(selected.shipId, selected.name, selected.type, selected.level);
+			saveToStorage();
+		}
+
+		onMyShipsClick = (item: MemberShip) => {
+			this.activeShip(item);
+			saveToStorage();
+		}
+
+		onAllShipToggleClick = () => {
+			this.allShipToggle.isClose(!this.allShipToggle.isClose());
 
 			saveToStorage();
 		}
 
-		public onMyShipsClick = (item: Ship) => {
-			this.activeShip(item);
-		}
+		member: {} = {
 
-	}
+			add: (ship : Ship) => {
+				var member = MemberShipMaster.insert(ship.shipId, ship.name, ship.type, ship.level);
+				this.activeShip(member);
 
-	export class ShipType {
-		constructor(
-			public id: string,
-			public name: string,
-			public shortName: string,
-			public selected: KnockoutObservable<boolean>) { }
-	}
-
-	export class Ship {
-		constructor(
-			public shipId: string,
-			public name: string,
-			public type: string,
-			public level?: number,
-			public memberId?: string
-			) {
-
-			if (!memberId) {
-				this.memberId = shipId + "_" + seq++;
-			}
-
-			if (0 < level) {
-				this.o_level = ko.observable(level);
-			}
-			else {
-				this.o_level = ko.observable(0);
-			}
-			this.o_level.subscribe((value) => {
-				this.level = value;
 				saveToStorage();
-			});
+			},
 
+			remove: () => {
+				MemberShipMaster.remove(this.activeShip());
+				this.activeShip(MemberShipMaster.getLastMember());
+
+				saveToStorage();
+			},
+
+			css: (member: MemberShip) => {
+				var css = 'type_' + member.type + " ";
+				if (member.memberId == this.activeShip().memberId) {
+					css += "active";
+				}
+				return css;
+			}
 		}
 
-		o_level: KnockoutObservable<number>;
+		fleet = {
 
-		shipType = (): string => {
-			if (this.type in Page.shipTypeMap) {
-				return "[" + Page.shipTypeMap[this.type].shortName + "]";
-			}
-			else {
-				return "";
-			}
-		}
+			activate: (item: Fleet) => {
+				this.activeFleet(item);
+			},
 
-		shipTypeLong = (): string => {
-			if (this.type in Page.shipTypeMap) {
-				return Page.shipTypeMap[this.type].name;
+			members: (_fleet: Fleet) => {
+
+				var list: Array<MemberShip> = [];
+
+				_fleet.o_memberIds().forEach((value, index) => {
+					var member = MemberShipMaster.getMember(value);
+					list.push(MemberShipMaster.getMember(value));
+				});
+
+				return list;
+			},
+
+			addFleet: () => {
+				FleetMaster.insert();
+				saveToStorage();
+			},
+
+			removeFleet: (fleet: Fleet) => {
+				FleetMaster.remove(fleet);
+				this.fleet.activate(FleetMaster.getLastFleet());
+				saveToStorage();
+			},
+
+			addMember: (member: MemberShip) => {
+				this.activeFleet().appendMember(member.memberId);
+				saveToStorage();
+			},
+
+			removeMember: (member: MemberShip) => {
+				this.activeFleet().removeMember(member.memberId);
+				saveToStorage();
+			},
+
+			css: (fleet: Fleet) => {
+				var css = "";
+				if (fleet.fleetId == this.activeFleet().fleetId) {
+					css += "active";
+				}
+				return css;
 			}
-			else {
-				return "";
-			}
+
 		}
 
 	}
 
-	function saveToStorage() {
+	export class AllShipToggle {
 
-		localStorage[LS_KEY.MEMBER] = JSON.stringify(viewModel.myShips());
+		constructor(isClose: boolean) {
+			this.isClose = ko.observable(isClose);
+		}
 
+		isClose: KnockoutObservable<boolean>;
+
+		text = (): string => {
+
+			if (this.isClose()) {
+				return "+";
+			}
+			return "-";
+		}
+	}
+
+	var savePromised = false;
+	export function saveToStorage() {
+
+		console.log("savePromised:" + savePromised);
+		if (!savePromised) {
+
+			savePromised = true;
+
+			$.Deferred((dfd) => {
+				setTimeout(dfd.resolve, 1000);
+			}).promise()
+				.then(() => {
+
+					localStorage[LS_KEY.ALLSHIP_TOGGLE_IS_CLOSE] = viewModel.allShipToggle.isClose();
+					localStorage[LS_KEY.ACTIVE_SHIP_ID] = viewModel.activeShip().shipId;
+					localStorage[LS_KEY.ACTIVE_FLEET_ID] = viewModel.activeFleet().fleetId;
+
+					MemberShipMaster.saveToStorage();
+					FleetMaster.saveToStorage();
+
+				}).done(() => {
+					savePromised = false;
+				});
+		}
 	}
 
 }
 
 $(document).ready(() => {
 
-	jQuery.ajax({
-		url: "./json/myship.json",
-		dataType: "JSON"
-	})
-		.then((data) => {
-
-			Page.shipData = [];
-			data.ships.forEach((value) => {
-				Page.shipData.push(new Page.Ship(value.id, value.name, value.type, 1));
-			});
-
+	ShipMaster.initialize()
+		.then(() => {
+			MemberShipMaster.initialize(Page.saveToStorage);
 		})
-		.then(Page.initialize);
+		.then(ShipTypeMaster.initialize)
+		.then(() => {
+			FleetMaster.initialize(Page.saveToStorage);
+		})
+		.done(Page.initialize);
 });
