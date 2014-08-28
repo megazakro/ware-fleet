@@ -60,17 +60,24 @@ module MemberShipMaster {
 		return MemberShip.empty();
 	}
 
+	export function getLastMember(): MemberShip {
+
+		return list[list.length - 1];
+	}
+
 	export function insert(shipId: string, name: string, type: string, level: number) : MemberShip {
 
 		var member = new MemberShip(shipId, name, type, level, String(memberSeq++), onLevelSubscribe);
 
 		list.push(member);
+		map[member.memberId] = member;
 
 		return member;
 	}
 
 	export function remove(memberShip : MemberShip) {
 		list.remove(memberShip);
+		delete map[memberShip.memberId];
 	}
 
 	export function saveToStorage() {

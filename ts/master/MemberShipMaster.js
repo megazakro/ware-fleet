@@ -60,10 +60,16 @@ var MemberShipMaster;
     }
     MemberShipMaster.getMember = getMember;
 
+    function getLastMember() {
+        return MemberShipMaster.list[MemberShipMaster.list.length - 1];
+    }
+    MemberShipMaster.getLastMember = getLastMember;
+
     function insert(shipId, name, type, level) {
         var member = new MemberShip(shipId, name, type, level, String(memberSeq++), onLevelSubscribe);
 
         MemberShipMaster.list.push(member);
+        MemberShipMaster.map[member.memberId] = member;
 
         return member;
     }
@@ -71,6 +77,7 @@ var MemberShipMaster;
 
     function remove(memberShip) {
         MemberShipMaster.list.remove(memberShip);
+        delete MemberShipMaster.map[memberShip.memberId];
     }
     MemberShipMaster.remove = remove;
 

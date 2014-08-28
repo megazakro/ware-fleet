@@ -18,7 +18,7 @@ class MemberShipsItem {
 }
 
 class FleetsItem {
-	shipId: string;
+	fleetId: string;
 	name: string;
 	memberIds: Array<string>;
 }

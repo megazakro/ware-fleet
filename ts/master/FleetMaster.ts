@@ -34,7 +34,7 @@ module FleetMaster {
 
 				if (value && 0 < value.length) {
 					value.forEach((item: FleetsItem) => {
-						_list.push(new Fleet(item.shipId, item.name, item.memberIds, _onFleetNameSubscribe));
+						_list.push(new Fleet(item.fleetId, item.name, item.memberIds, _onFleetNameSubscribe));
 					});
 				}
 			}
@@ -43,6 +43,10 @@ module FleetMaster {
 
 			dfd.resolve();
 		}).promise();
+	}
+
+	export function getLastFleet(): Fleet{
+		return list()[list().length - 1];
 	}
 
 	export function insert(name?: string): Fleet {
@@ -55,7 +59,8 @@ module FleetMaster {
 			fleetName = name;
 		}
 
-		var fleet = new Fleet(String(fleetSeq++), fleetName, [], onFleetNameSubscribe);
+		var fleetId = String(fleetSeq++);
+		var fleet = new Fleet(fleetId, fleetName, [], onFleetNameSubscribe);
 
 		list.push(fleet);
 
@@ -63,6 +68,11 @@ module FleetMaster {
 	}
 
 	export function remove(fleet: Fleet) {
+
+		if (list().length <= 1) {
+			return;
+		}
+
 		list.remove(fleet);
 	}
 
@@ -125,20 +135,15 @@ class Fleet {
 
 	public appendMember(id: string) {
 
-		alert(this.memberIds);
-		alert(id + " " + this.memberIds.indexOf("" + id));
-
 		if (this.memberIds.length < 6) {
-			if (this.memberIds.indexOf("" + id) < 0) {
-				this.o_memberIds.push("" + id);
+			if (this.memberIds.indexOf(id) < 0) {
+				this.o_memberIds.push(id);
 				this.memberIds = this.o_memberIds();
 			}
 		}
 	}
 
 	public removeMember(id: string) {
-
-		alert(id + " " + this.memberIds.indexOf(id));
 
 		if (0 <= this.memberIds.indexOf(id)) {
 			this.o_memberIds.remove(id);

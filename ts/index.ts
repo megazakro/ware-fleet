@@ -72,6 +72,11 @@ module Page {
 			var list: Array<MemberShip> = [];
 
 			this.activeFleet().o_memberIds().forEach((value, index) => {
+
+				var member = MemberShipMaster.getMember(value);
+
+				console.log(member);
+
 				list.push(MemberShipMaster.getMember(value));
 			});
 
@@ -102,9 +107,12 @@ module Page {
 			}
 		}
 
-		getShipTypeShortName(item: Ship) : string {
+		getShipTypeShortName(item: Ship, withoutBracket? : boolean) : string {
 
 			if (item.type in ShipTypeMaster.map) {
+				if (withoutBracket) {
+					return ShipTypeMaster.map[item.type].shortName;
+				}
 				return "[" + ShipTypeMaster.map[item.type].shortName + "]";
 			}
 			else {
@@ -114,14 +122,6 @@ module Page {
 
 		getMemberShip(id: string): MemberShip {
 			return MemberShipMaster.getMember(id);
-		}
-
-		memberShip = {
-
-			getName(id: string): string {
-				return MemberShipMaster.getMember(id).name;
-			}
-
 		}
 
 		onShipTypeClick = (item: ShipType) => {
@@ -160,35 +160,47 @@ module Page {
 			saveToStorage();
 		}
 
-		onAddShipClick = () => {
-
-			this.activeFleet().o_memberIds.push(this.activeShip().memberId);
-
-			saveToStorage();
-		}
-
-		onRemoveShipClick = () => {
-			MemberShipMaster.remove(this.activeShip());
-			this.activeShip(MemberShip.empty());
-
-			saveToStorage();
-		}
-
 		member: {} = {
+
+			add: (ship : Ship) => {
+				var member = MemberShipMaster.insert(ship.shipId, ship.name, ship.type, ship.level);
+				this.activeShip(member);
+
+				saveToStorage();
+			},
 
 			remove: () => {
 				MemberShipMaster.remove(this.activeShip());
-				this.activeShip(MemberShip.empty());
+				this.activeShip(MemberShipMaster.getLastMember());
 
 				saveToStorage();
-			}
+			},
 
+			css: (member: MemberShip) => {
+				var css = 'type_' + member.type + " ";
+				if (member.memberId == this.activeShip().memberId) {
+					css += "active";
+				}
+				return css;
+			}
 		}
 
-		fleet: {} = {
+		fleet = {
 
 			activate: (item: Fleet) => {
 				this.activeFleet(item);
+			},
+
+			members: (_fleet: Fleet) => {
+
+				var list: Array<MemberShip> = [];
+
+				_fleet.o_memberIds().forEach((value, index) => {
+					var member = MemberShipMaster.getMember(value);
+					list.push(MemberShipMaster.getMember(value));
+				});
+
+				return list;
 			},
 
 			addFleet: () => {
@@ -196,8 +208,9 @@ module Page {
 				saveToStorage();
 			},
 
-			removeFleet: () => {
-				FleetMaster.remove(this.activeFleet());
+			removeFleet: (fleet: Fleet) => {
+				FleetMaster.remove(fleet);
+				this.fleet.activate(FleetMaster.getLastFleet());
 				saveToStorage();
 			},
 
@@ -209,6 +222,14 @@ module Page {
 			removeMember: (member: MemberShip) => {
 				this.activeFleet().removeMember(member.memberId);
 				saveToStorage();
+			},
+
+			css: (fleet: Fleet) => {
+				var css = "";
+				if (fleet.fleetId == this.activeFleet().fleetId) {
+					css += "active";
+				}
+				return css;
 			}
 
 		}

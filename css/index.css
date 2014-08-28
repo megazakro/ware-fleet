@@ -47,6 +47,12 @@ body {
 	padding: 10px 10px;
 }
 
+.noborder_box {
+	background-color: #b0d7f4;
+	padding: 0px 0px;
+}
+
+
 .border_section {
 	background-color: #fdfdfd;
 	padding: 0px 5px;
@@ -191,6 +197,11 @@ ul.myships {
 			border-width: 2px;
 		}
 
+		ul.myships li.active {
+			border-color: #d16b16;
+			border-width: 2px;
+		}
+
 		ul.myships li span {
 			vertical-align: middle;
 			line-height: 20px;
@@ -311,34 +322,66 @@ ul.myships {
 	vertical-align: top;
 }
 
+	#div_fleet_list div.border_box {
+		padding-top: 0px;
+	}
+
 	#div_fleet_list h4 {
 		vertical-align: middle;
 		height: 24px;
 	}
 
-ul.myfleets li {
-	display: inline-block;
-	cursor: pointer;
-	padding-top: 0px;
-	padding-bottom: 0px;
-	min-height: 26px;
-}
-
-	ul.myfleets li:hover {
-		border-color: #d16b16;
-		border-width: 2px;
+	#div_fleet_list div.command {
+		padding: 0px;
+		height: 30px;
 	}
 
-	ul.myfleets li span {
-		vertical-align: middle;
-		line-height: 20px;
-	}
-
-		ul.myfleets li span.name {
-			display: inline-block;
-			width: 150px;
+		#div_fleet_list div.command a.add {
+			border-color: #019c96;
+			background-color: #019c96;
+			color: #ffffff;
+			float: right;
 		}
 
+ul.myfleets {
+	margin-top:10px;
+}
+
+	ul.myfleets li {
+		display: inline-block;
+		cursor: pointer;
+		padding-top: 0px;
+		padding-bottom: 0px;
+		width: 200px;
+		height: 50px;
+		vertical-align: top;
+	}
+
+		ul.myfleets li:hover {
+			border-color: #d16b16;
+			border-width: 2px;
+		}
+
+		ul.myfleets li.active {
+			border-color: #d16b16;
+			border-width: 2px;
+		}
+
+		ul.myfleets li span {
+			vertical-align: middle;
+			line-height: 20px;
+		}
+
+			ul.myfleets li span.name {
+				display: inline-block;
+			}
+
+		ul.myfleets li div.ship_type {
+			font-size: 0.9em;
+			color: red;
+			height: 20px;
+			min-width: 20px;
+		}
 
 #div_active_fleet {
 	width: 50%;
@@ -364,3 +407,15 @@ ul.myfleets li {
 		font-size: 0.9em;
 		height: 20px;
 	}
+
+	#div_active_fleet div.command {
+		padding: 0px;
+		height: 30px;
+	}
+
+		#div_active_fleet div.command a.remove {
+			border-color: #c60019;
+			background-color: #c60019;
+			color: #ffffff;
+			float: left;
+		}

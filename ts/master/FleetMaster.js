@@ -28,7 +28,7 @@ var FleetMaster;
 
                 if (value && 0 < value.length) {
                     value.forEach(function (item) {
-                        _list.push(new Fleet(item.shipId, item.name, item.memberIds, _onFleetNameSubscribe));
+                        _list.push(new Fleet(item.fleetId, item.name, item.memberIds, _onFleetNameSubscribe));
                     });
                 }
             }
@@ -40,6 +40,11 @@ var FleetMaster;
     }
     FleetMaster.initialize = initialize;
 
+    function getLastFleet() {
+        return FleetMaster.list()[FleetMaster.list().length - 1];
+    }
+    FleetMaster.getLastFleet = getLastFleet;
+
     function insert(name) {
         var fleetName;
         if (!name) {
@@ -48,7 +53,8 @@ var FleetMaster;
             fleetName = name;
         }
 
-        var fleet = new Fleet(String(fleetSeq++), fleetName, [], onFleetNameSubscribe);
+        var fleetId = String(fleetSeq++);
+        var fleet = new Fleet(fleetId, fleetName, [], onFleetNameSubscribe);
 
         FleetMaster.list.push(fleet);
 
@@ -57,6 +63,10 @@ var FleetMaster;
     FleetMaster.insert = insert;
 
     function remove(fleet) {
+        if (FleetMaster.list().length <= 1) {
+            return;
+        }
+
         FleetMaster.list.remove(fleet);
     }
     FleetMaster.remove = remove;
@@ -102,20 +112,15 @@ var Fleet = (function () {
         });
     }
     Fleet.prototype.appendMember = function (id) {
-        alert(this.memberIds);
-        alert(id + " " + this.memberIds.indexOf("" + id));
-
         if (this.memberIds.length < 6) {
-            if (this.memberIds.indexOf("" + id) < 0) {
-                this.o_memberIds.push("" + id);
+            if (this.memberIds.indexOf(id) < 0) {
+                this.o_memberIds.push(id);
                 this.memberIds = this.o_memberIds();
             }
         }
     };
 
     Fleet.prototype.removeMember = function (id) {
-        alert(id + " " + this.memberIds.indexOf(id));
-
         if (0 <= this.memberIds.indexOf(id)) {
             this.o_memberIds.remove(id);
             this.memberIds = this.o_memberIds();
