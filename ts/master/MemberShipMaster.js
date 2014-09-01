@@ -1,6 +1,9 @@
 ﻿/// <reference path="../../Scripts/typings/jquery/jquery.d.ts"/>
 /// <reference path="../../Scripts/typings/knockout/knockout.d.ts"/>
+/// <reference path="../common/LocalStorage.ts"/>
 /// <reference path="./ShipMaster.ts"/>
+/// <reference path="./data/ShipType.ts"/>
+/// <reference path="./data/Ship.ts"/>
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -60,8 +63,13 @@ var MemberShipMaster;
     }
     MemberShipMaster.getMember = getMember;
 
+    function exists(memberId) {
+        return (memberId in MemberShipMaster.map);
+    }
+    MemberShipMaster.exists = exists;
+
     function getLastMember() {
-        return MemberShipMaster.list[MemberShipMaster.list.length - 1];
+        return MemberShipMaster.list()[MemberShipMaster.list().length - 1];
     }
     MemberShipMaster.getLastMember = getLastMember;
 

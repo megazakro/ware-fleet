@@ -28,17 +28,36 @@ class ShipTypes {
 	/** 軽巡洋艦 */
 	static CL = "09";
 
+	/** 雷巡 */
+	static CLT = "10";
+
 	/** 駆逐艦 */
-	static DD = "10";
+	static DD = "11";
+
+	/** 潜水艦 */
+	static SS = "12";
+
+	/** 潜水空母 */
+	static SSV = "13";
+
+	/** 揚陸艦 */
+	static LHA = "14";
+
+	/** 工作艦 */
+	static AR = "15";
+
+	/** 潜水母艦 */
+	static AS = "16";
 }
 
 class ShipType {
 	constructor(
 		public id: string,
 		public name: string,
-		public shortName: string) {
+		public shortName: string,
+		_selected: boolean) {
 
-		this.selected = ko.observable(true);
+		this.selected = ko.observable(_selected);
 	}
 
 	selected: KnockoutObservable<boolean>

@@ -19,16 +19,28 @@
 
     ShipTypes.CL = "09";
 
-    ShipTypes.DD = "10";
+    ShipTypes.CLT = "10";
+
+    ShipTypes.DD = "11";
+
+    ShipTypes.SS = "12";
+
+    ShipTypes.SSV = "13";
+
+    ShipTypes.LHA = "14";
+
+    ShipTypes.AR = "15";
+
+    ShipTypes.AS = "16";
     return ShipTypes;
 })();
 
 var ShipType = (function () {
-    function ShipType(id, name, shortName) {
+    function ShipType(id, name, shortName, _selected) {
         this.id = id;
         this.name = name;
         this.shortName = shortName;
-        this.selected = ko.observable(true);
+        this.selected = ko.observable(_selected);
     }
     return ShipType;
 })();

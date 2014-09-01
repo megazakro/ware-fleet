@@ -1,7 +1,10 @@
 ﻿
 /// <reference path="../../Scripts/typings/jquery/jquery.d.ts"/>
 /// <reference path="../../Scripts/typings/knockout/knockout.d.ts"/>
+/// <reference path="../common/LocalStorage.ts"/>
 /// <reference path="./ShipMaster.ts"/>
+/// <reference path="./data/ShipType.ts"/>
+/// <reference path="./data/Ship.ts"/>
 
 module MemberShipMaster {
 
@@ -60,9 +63,12 @@ module MemberShipMaster {
 		return MemberShip.empty();
 	}
 
-	export function getLastMember(): MemberShip {
+	export function exists(memberId: string): boolean {
+		return (memberId in map);
+	}
 
-		return list[list.length - 1];
+	export function getLastMember(): MemberShip {
+		return list()[list().length - 1];
 	}
 
 	export function insert(shipId: string, name: string, type: string, level: number) : MemberShip {

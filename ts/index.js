@@ -55,16 +55,68 @@ var Page;
                 MemberShipMaster.insert(selected.shipId, selected.name, selected.type, selected.level);
                 saveToStorage();
             };
-            this.onMyShipsClick = function (item) {
-                _this.activeShip(item);
-                saveToStorage();
-            };
             this.onAllShipToggleClick = function () {
                 _this.allShipToggle.isClose(!_this.allShipToggle.isClose());
 
                 saveToStorage();
             };
+            this.shipType = {
+                all: function () {
+                    return ShipTypeMaster.list;
+                },
+                filter: function (shipType) {
+                    var selected = !shipType.selected();
+
+                    ShipTypeMaster.list.forEach(function (value, index) {
+                        value.selected(false);
+                    });
+
+                    shipType.selected(selected);
+
+                    if (selected) {
+                        var shows = $("#ul_ship_type li.selected").map(function (index, element) {
+                            return ".type_" + element.getAttribute("id");
+                        }).toArray();
+
+                        var hides = $("#ul_ship_type li.unselected").map(function (index, element) {
+                            return ".type_" + element.getAttribute("id");
+                        }).toArray();
+
+                        if (0 < shows.length) {
+                            $(shows.join(",")).show();
+                        }
+
+                        if (0 < hides.length) {
+                            $(hides.join(",")).hide();
+                        }
+                    } else {
+                        $(".all_ship.list li").show();
+                        $(".myships.list li").show();
+                    }
+                },
+                getName: function (item) {
+                    if (item.type in ShipTypeMaster.map) {
+                        return ShipTypeMaster.map[item.type].name;
+                    } else {
+                        return "";
+                    }
+                },
+                getShortName: function (item, withoutBracket) {
+                    if (item.type in ShipTypeMaster.map) {
+                        if (withoutBracket) {
+                            return ShipTypeMaster.map[item.type].shortName;
+                        }
+                        return "[" + ShipTypeMaster.map[item.type].shortName + "]";
+                    } else {
+                        return "";
+                    }
+                }
+            };
             this.member = {
+                activate: function (item) {
+                    _this.activeShip(item);
+                    saveToStorage();
+                },
                 add: function (ship) {
                     var member = MemberShipMaster.insert(ship.shipId, ship.name, ship.type, ship.level);
                     _this.activeShip(member);
@@ -72,15 +124,24 @@ var Page;
                     saveToStorage();
                 },
                 remove: function () {
-                    MemberShipMaster.remove(_this.activeShip());
-                    _this.activeShip(MemberShipMaster.getLastMember());
+                    var removeShip = _this.activeShip();
+
+                    MemberShipMaster.remove(removeShip);
+                    var lastMember = MemberShipMaster.getLastMember();
+                    _this.activeShip(lastMember);
+
+                    FleetMaster.list().forEach(function (fleet, index) {
+                        fleet.o_memberIds.remove(removeShip.memberId);
+                    });
 
                     saveToStorage();
                 },
                 css: function (member) {
                     var css = 'type_' + member.type + " ";
-                    if (member.memberId == _this.activeShip().memberId) {
-                        css += "active";
+                    if (_this.activeShip()) {
+                        if (member.memberId == _this.activeShip().memberId) {
+                            css += "active";
+                        }
                     }
                     return css;
                 }
@@ -90,11 +151,21 @@ var Page;
                     _this.activeFleet(item);
                 },
                 members: function (_fleet) {
-                    var list = [];
+                    console.log("members");
 
-                    _fleet.o_memberIds().forEach(function (value, index) {
-                        var member = MemberShipMaster.getMember(value);
-                        list.push(MemberShipMaster.getMember(value));
+                    var list = [];
+                    var unknown = [];
+                    _fleet.o_memberIds().forEach(function (memberId, index) {
+                        if (MemberShipMaster.exists(memberId)) {
+                            var member = MemberShipMaster.getMember(memberId);
+                            list.push(member);
+                        } else {
+                            unknown.push(memberId);
+                        }
+                    });
+
+                    unknown.forEach(function (value, index) {
+                        _fleet.o_memberIds.remove(value);
                     });
 
                     return list;
@@ -125,8 +196,6 @@ var Page;
                 }
             };
             this.allShips = ShipMaster.list;
-
-            this.shipTypes = ShipTypeMaster.list;
 
             this.myShips = MemberShipMaster.list;
 
@@ -166,25 +235,6 @@ var Page;
             });
 
             return list;
-        };
-
-        ViewModel.prototype.getShipTypeName = function (item) {
-            if (item.type in ShipTypeMaster.map) {
-                return ShipTypeMaster.map[item.type].name;
-            } else {
-                return "";
-            }
-        };
-
-        ViewModel.prototype.getShipTypeShortName = function (item, withoutBracket) {
-            if (item.type in ShipTypeMaster.map) {
-                if (withoutBracket) {
-                    return ShipTypeMaster.map[item.type].shortName;
-                }
-                return "[" + ShipTypeMaster.map[item.type].shortName + "]";
-            } else {
-                return "";
-            }
         };
 
         ViewModel.prototype.getMemberShip = function (id) {

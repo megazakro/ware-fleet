@@ -1,4 +1,7 @@
-﻿/// <reference path="../common/LocalStorage.ts"/>
+﻿/// <reference path="../../Scripts/typings/jquery/jquery.d.ts"/>
+/// <reference path="../../Scripts/typings/knockout/knockout.d.ts"/>
+/// <reference path="../common/LocalStorage.ts"/>
+/// <reference path="../../Scripts/typings/knockout/knockout.d.ts"/>
 var FleetMaster;
 (function (FleetMaster) {
     var fleetSeq;

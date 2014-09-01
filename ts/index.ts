@@ -40,8 +40,6 @@ module Page {
 
 			this.allShips = ShipMaster.list;
 
-			this.shipTypes = ShipTypeMaster.list;
-
 			this.myShips = MemberShipMaster.list;
 
 			if (activeShipId) {
@@ -89,36 +87,11 @@ module Page {
 
 		activeFleet: KnockoutObservable<Fleet>;
 
-		shipTypes: Array<ShipType>;
-
 		myShips: KnockoutObservableArray<MemberShip>;
 
 		myFleets: KnockoutObservableArray<Fleet>;
 
 		allShipToggle: AllShipToggle;
-
-		getShipTypeName(item: Ship): string {
-
-			if (item.type in ShipTypeMaster.map) {
-				return ShipTypeMaster.map[item.type].name;
-			}
-			else {
-				return "";
-			}
-		}
-
-		getShipTypeShortName(item: Ship, withoutBracket? : boolean) : string {
-
-			if (item.type in ShipTypeMaster.map) {
-				if (withoutBracket) {
-					return ShipTypeMaster.map[item.type].shortName;
-				}
-				return "[" + ShipTypeMaster.map[item.type].shortName + "]";
-			}
-			else {
-				return "";
-			}
-		}
 
 		getMemberShip(id: string): MemberShip {
 			return MemberShipMaster.getMember(id);
@@ -149,18 +122,83 @@ module Page {
 			saveToStorage();
 		}
 
-		onMyShipsClick = (item: MemberShip) => {
-			this.activeShip(item);
-			saveToStorage();
-		}
-
 		onAllShipToggleClick = () => {
 			this.allShipToggle.isClose(!this.allShipToggle.isClose());
 
 			saveToStorage();
 		}
 
+		shipType: {} = {
+
+			all: () => {
+				return ShipTypeMaster.list;
+			},
+
+			filter: (shipType: ShipType) => {
+
+				var selected = !shipType.selected();
+
+				ShipTypeMaster.list.forEach((value, index) => {
+					value.selected(false);
+				});
+
+				shipType.selected(selected);
+
+				if (selected) {
+					var shows = $("#ul_ship_type li.selected").map((index, element) => {
+						return ".type_" + element.getAttribute("id");
+					}).toArray();
+
+					var hides = $("#ul_ship_type li.unselected").map((index, element) => {
+						return ".type_" + element.getAttribute("id");
+					}).toArray();
+
+					if (0 < shows.length) {
+						$(shows.join(",")).show();
+					}
+
+					if (0 < hides.length) {
+						$(hides.join(",")).hide();
+					}
+				}
+				else {
+					$(".all_ship.list li").show();
+					$(".myships.list li").show();
+				}
+
+			},
+
+			getName: (item: Ship) => {
+				if (item.type in ShipTypeMaster.map) {
+					return ShipTypeMaster.map[item.type].name;
+				}
+				else {
+					return "";
+				}
+			},
+
+			getShortName : (item: Ship, withoutBracket?: boolean) => {
+
+				if (item.type in ShipTypeMaster.map) {
+					if (withoutBracket) {
+						return ShipTypeMaster.map[item.type].shortName;
+					}
+					return "[" + ShipTypeMaster.map[item.type].shortName + "]";
+				}
+				else {
+					return "";
+				}
+			}
+
+
+		}
+
 		member: {} = {
+
+			activate: (item: MemberShip) => {
+				this.activeShip(item);
+				saveToStorage();
+			},
 
 			add: (ship : Ship) => {
 				var member = MemberShipMaster.insert(ship.shipId, ship.name, ship.type, ship.level);
@@ -170,16 +208,26 @@ module Page {
 			},
 
 			remove: () => {
-				MemberShipMaster.remove(this.activeShip());
-				this.activeShip(MemberShipMaster.getLastMember());
+
+				var removeShip = this.activeShip();
+
+				MemberShipMaster.remove(removeShip);
+				var lastMember = MemberShipMaster.getLastMember();
+				this.activeShip(lastMember);
+
+				FleetMaster.list().forEach((fleet, index) => {
+					fleet.o_memberIds.remove(removeShip.memberId);
+				});
 
 				saveToStorage();
 			},
 
 			css: (member: MemberShip) => {
 				var css = 'type_' + member.type + " ";
-				if (member.memberId == this.activeShip().memberId) {
-					css += "active";
+				if (this.activeShip()) {
+					if (member.memberId == this.activeShip().memberId) {
+						css += "active";
+					}
 				}
 				return css;
 			}
@@ -193,11 +241,23 @@ module Page {
 
 			members: (_fleet: Fleet) => {
 
-				var list: Array<MemberShip> = [];
+				console.log("members");
 
-				_fleet.o_memberIds().forEach((value, index) => {
-					var member = MemberShipMaster.getMember(value);
-					list.push(MemberShipMaster.getMember(value));
+				var list: Array<MemberShip> = [];
+				var unknown: Array<string> = [];
+				_fleet.o_memberIds().forEach((memberId, index) => {
+
+					if (MemberShipMaster.exists(memberId)) {
+						var member = MemberShipMaster.getMember(memberId);
+						list.push(member);
+					}
+					else {
+						unknown.push(memberId);
+					}
+				});
+
+				unknown.forEach((value, index) => {
+					_fleet.o_memberIds.remove(value);
 				});
 
 				return list;
