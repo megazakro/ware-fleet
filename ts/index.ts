@@ -93,30 +93,6 @@ module Page {
 
 		allShipToggle: AllShipToggle;
 
-		getMemberShip(id: string): MemberShip {
-			return MemberShipMaster.getMember(id);
-		}
-
-		onShipTypeClick = (item: ShipType) => {
-			item.selected(!item.selected());
-
-			var shows = $("#ul_ship_type li.selected").map((index, element) => {
-				return ".type_" + element.getAttribute("id");
-			}).toArray();
-
-			var hides = $("#ul_ship_type li.unselected").map((index, element) => {
-				return ".type_" + element.getAttribute("id");
-			}).toArray();
-
-			if (0 < shows.length) {
-				$(shows.join(",")).show();
-			}
-
-			if (0 < hides.length) {
-				$(hides.join(",")).hide();
-			}
-		}
-
 		onAllShipsClick = (selected: Ship) => {
 			MemberShipMaster.insert(selected.shipId, selected.name, selected.type, selected.level);
 			saveToStorage();

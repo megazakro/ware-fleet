@@ -32,25 +32,6 @@ var Page;
     var ViewModel = (function () {
         function ViewModel(allShipToggleHide, activeShipId) {
             var _this = this;
-            this.onShipTypeClick = function (item) {
-                item.selected(!item.selected());
-
-                var shows = $("#ul_ship_type li.selected").map(function (index, element) {
-                    return ".type_" + element.getAttribute("id");
-                }).toArray();
-
-                var hides = $("#ul_ship_type li.unselected").map(function (index, element) {
-                    return ".type_" + element.getAttribute("id");
-                }).toArray();
-
-                if (0 < shows.length) {
-                    $(shows.join(",")).show();
-                }
-
-                if (0 < hides.length) {
-                    $(hides.join(",")).hide();
-                }
-            };
             this.onAllShipsClick = function (selected) {
                 MemberShipMaster.insert(selected.shipId, selected.name, selected.type, selected.level);
                 saveToStorage();
@@ -235,10 +216,6 @@ var Page;
             });
 
             return list;
-        };
-
-        ViewModel.prototype.getMemberShip = function (id) {
-            return MemberShipMaster.getMember(id);
         };
         return ViewModel;
     })();
